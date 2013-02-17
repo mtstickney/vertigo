@@ -63,7 +63,7 @@ def syntax_section(soup):
 	for i in syntax.findNextSiblings():
 		if not isinstance(i, bs3.Tag):
 			# bail as soon as someone starts bandying 'example' about
-			if u'example' in i:
+			if u'example' in i or u'Example' in i:
 				return (syntax_tables, special)
 			else:
 				continue
