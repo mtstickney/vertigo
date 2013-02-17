@@ -19,7 +19,7 @@ def isExamplesTag(i):
 		return False
 	if i.name != "b":
 		return False
-	if 'class' not in i.attrs or "pnote" not in i['class']:
+	if i.get('class') is None or "pnote" not in i['class']:
 		return False
 	if i.string is None or "Example" not in i.string:
 		sys.stderr.write("String is wrong")
