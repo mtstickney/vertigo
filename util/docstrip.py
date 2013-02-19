@@ -102,10 +102,10 @@ def syntax_html(soup):
 	return tag
 
 def syntax_strings(soup):
-	sections = syntax_section(soup)
+	sections, special = syntax_section(soup)
 	if sections is None:
 		return []
-	return [t.pre.string for t in sections[0] if not isSyntaxNoteTag(t)]
+	return [t.pre.string for t in sections if not isSyntaxNoteTag(t)]
 
 def syntax_page(filename):
 	fh = open(filename)
