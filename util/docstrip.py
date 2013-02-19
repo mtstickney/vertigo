@@ -21,7 +21,7 @@ def isExamplesTag(i):
 		return False
 	if 'class' not in i.attrs or "pnote" not in i['class']:
 		return False
-	if i.string is None or u"Example" not in i.string:
+	if i.string is None or (u"Example" not in i.string and u"example" not in i.string):
 		return False
 	return True
 
