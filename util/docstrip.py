@@ -52,10 +52,10 @@ def filter_pre(pre):
 def syntax_section(soup):
 	h4s = soup.find_all('h4')
 	if len(h4s) == 0:
-		return None
+		return (None, False)
 	syntax = h4s[0]
 	if syntax.string != u'\r\nSyntax\r\n':
-		return None
+		return (None, False)
 
 	# Go find the syntax sections
 	special = False
