@@ -3,10 +3,10 @@ import os
 import sys
 import codecs
 import shutil
-import BeautifulSoup as bs3
+import bs4
 
-def isParameterTag(i):	
-	if not isinstance(i, bs3.Tag):
+def isParameterTag(i):
+	if not isinstance(i, bs4.element.Tag):
 		return False
 	if i.name != "code":
 		return False
@@ -15,18 +15,18 @@ def isParameterTag(i):
 	return True
 
 def isExamplesTag(i):
-	if not isinstance(i, bs3.Tag):
+	if not isinstance(i, bs4.element.Tag):
 		return False
 	if i.name != "b":
 		return False
-	if i.get('class') is None or "pnote" not in i['class']:
+	if 'class' not in i.attrs or "pnote" not in i['class']:
 		return False
 	if i.string is None or u"Example" not in i.string:
 		return False
 	return True
 
 def isSyntaxNoteTag(i):
-	if not isinstance(i, bs3.Tag):
+	if not isinstance(i, bs4.element.Tag):
 		return False
 	if i.name != "p":
 		return False
@@ -38,7 +38,7 @@ def isSyntaxNoteTag(i):
 
 def wrapped_var_slots(lst):
 	for t in lst:
-		if isinstance(t, bs3.Tag) and t.name == 'code':
+		if isinstance(t, bs4.element.Tag) and t.name == 'code':
 			s = t.string.strip()
 			if len(s) > 0:
 				yield u"`{}`".format(s)
@@ -46,11 +46,11 @@ def wrapped_var_slots(lst):
 			yield t
 
 def filter_pre(pre):
-	tags = (t for t in pre.contents if not isinstance(t, bs3.Tag) or t.name == 'code')
+	tags = (t for t in pre.contents if not isinstance(t, bs4.element.Tag) or t.name == 'code')
 	return wrapped_var_slots(tags)
 	
 def syntax_section(soup):
-	h4s = soup.findAll('h4')
+	h4s = soup.find_all('h4')
 	if len(h4s) == 0:
 		return None
 	syntax = h4s[0]
@@ -60,8 +60,7 @@ def syntax_section(soup):
 	# Go find the syntax sections
 	special = False
 	syntax_tables = []
-	for i in syntax.findNextSiblings():
-		if not isinstance(i, bs3.Tag):
+	for i in syntax.find_next_siblings():
 			# bail as soon as someone starts bandying 'example' about
 			if u'example' in i or u'Example' in i:
 				return (syntax_tables, special)
@@ -75,6 +74,7 @@ def syntax_section(soup):
 			return (syntax_tables, special)
 		if isExamplesTag(i):
 			# Also done (might not have been any parameters)
+		if not isinstance(i, bs4.element.Tag):
 			return (syntax_tables, special)
 		if isSyntaxNoteTag(i):
 			special = True
@@ -85,7 +85,7 @@ def syntax_section(soup):
 	return (syntax_tables, special)
 
 def syntax_html(soup):
-	outsoup = bs3.BeautifulSoup("<ul></ul")
+	outsoup = bs4.BeautifulSoup("<ul></ul")
 	tag = soup.ul
 	stuffs = syntax_section(soup)
 	if stuffs is None:
@@ -109,7 +109,7 @@ def syntax_strings(soup):
 
 def syntax_page(filename):
 	fh = open(filename)
-	soup = bs3.BeautifulSoup("<html><head><title>Syntax Page</title></head><body></body></html")
+	soup = bs4.BeautifulSoup("<html><head><title>Syntax Page</title></head><body></body></html")
 	t = syntax_html(fh)
 	soup.body.append(t)
 	print soup
@@ -128,7 +128,7 @@ def html_files(d):
 
 
 def make_html_syntax_page(d):
-	soup = bs3.BeautifulSoup('<html><head><META http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><title>Syntax Page</title></head><body</body></html>')
+	soup = bs4.BeautifulSoup('<html><head><META http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><title>Syntax Page</title></head><body</body></html>')
 
 	fs = html_files(d)
 	for f in fs:
@@ -158,7 +158,7 @@ def make_syntax_tree(src, dest):
 			fname, fext = os.path.splitext(os.path.split(f)[1])
 			destdir = os.path.join(dest, fname)
 
-			soup = bs3.BeautifulSoup(fh)
+			soup = bs4.BeautifulSoup(fh)
 			strings = syntax_strings(soup)
 			if len(strings) == 0:
 				continue
