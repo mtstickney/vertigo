@@ -1,3 +1,39 @@
+;;; Custom numeric expression rule
+;; value = number-literal | var-place | ( expression ) | - value
+;;       | + value | funcall
+;; mult-expression = value '*' value | value
+;; div-expression = mult-expression '/' mult-expression
+;;                | mult-expression
+;; add-expression = div-expression '+' div-expression
+;;                | div-expression
+;; minus-expression = add-expression '-' add-expression
+;;                  | add-expression
+
+(meta-sexp:defrule numeric-primary? () ()
+  (:or (:and (:* (:type digit))
+             (:? #\.
+                 (:+ (:type digit))))
+       (:and
+        ;; Optional unary op plus a primary
+        (:? (:or (:and "+" (:? (:rule :whitespace)))
+                 (:and "-" (:? (:rule :whitespace)))))
+        (:rule value-place?))
+       (:and "("
+             (:? (:rule whitespace?))
+             (:rule numeric-expression?)
+             (:? (:rule whitespace?))
+             ")")
+       (:rule :function-call)))
+
+;; For precedence parsing, see http://en.wikipedia.org/wiki/Operator-precedence_parser
+(meta-sexp:defrule numeric-expression? (&aux ) ()
+  ;; Just a recognizer, no precedence parsing
+  (:rule numeric-primary?)
+  (:*
+   (:? (:rule whitespace?))
+   (:or "+" "-" "/" "*")
+   (:? (:rule whitespace?))
+   (:rule numeric-primary?)))
 
 ;;; + Unary positive operator
 ;; Form no. 1

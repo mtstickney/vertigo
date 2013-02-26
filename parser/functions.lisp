@@ -1,3 +1,26 @@
+;;; Custom function call rule, for user-defined and builtin functions.
+;;; May not be a bit overly permissive of arg specs.
+(meta-sexp:defrule function-call? (&aux match) ()
+  (:with-stored-match (match)
+    (:rule :identifier)
+    (:? (:rule :whitespace))
+
+    ;; no-param funcs can omit the parens
+    (:?
+     "("
+     (:? (:rule :whitespace))
+
+     ;; Parameter
+     (:delimited #\,
+                 (:? (:rule :whitespace))
+                 (:? (:or (:icase "input")
+                          (:icase "output")
+                          (:icase "input-output")))
+                 (:rule :whitespace)
+                 ;; TODO: does this need to be a place instead
+                 ;; (e.g. "INPUT foo[0]") of just an identifier?
+                 (:rule :identifier)
+                 (:? (:rule :whitespace))))))
 
 ;;; ABSOLUTE function
 ;; Form no. 1
