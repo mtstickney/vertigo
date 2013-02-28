@@ -1,26 +1,44 @@
+(meta-sexp:defrule param-spec? (&aux match)
+  (:or (:and (:icase "input")
+             (:rule whitespace?)
+             (:rule value-expression?))
+       (:and (:or (:icase "output")
+                  (:icase "input-output"))
+             (:rule whitespace?)
+             (:rule place?))))
+
+(meta-sexp:defrule param-list? (&aux match)
+  (:with-stored-match
+      "("
+    (:? (:rule whitespace?))
+
+    ;; Parameters
+    (:delimited #\,
+                (:? (:rule whitespace?))
+                (:? (:rule param-spec?))
+                (:? (:rule whitespace?)))
+    ")")
+
+  (:return match))
+
 ;;; Custom function call rule, for user-defined and builtin functions.
 ;;; May not be a bit overly permissive of arg specs.
 (meta-sexp:defrule function-call? (&aux match) ()
   (:with-stored-match (match)
     (:rule :identifier)
-    (:? (:rule :whitespace))
+    (:? (:rule whitespace?))
 
     ;; no-param funcs can omit the parens
-    (:?
-     "("
-     (:? (:rule :whitespace))
+    (:? (:rule param-list?))))
 
-     ;; Parameter
-     (:delimited #\,
-                 (:? (:rule :whitespace))
-                 (:? (:or (:icase "input")
-                          (:icase "output")
-                          (:icase "input-output")))
-                 (:rule :whitespace)
-                 ;; TODO: does this need to be a place instead
-                 ;; (e.g. "INPUT foo[0]") of just an identifier?
-                 (:rule :identifier)
-                 (:? (:rule :whitespace))))))
+(meta-sexp:defrule procedure-call? (&aux match) ()
+  (:with-stored-match (match)
+    (:? (:rule whitespace?))
+    (:or (:and (:icase "value(")
+               (:rule value-expression?)
+               ")")
+         (:rule function-call?)))
+  (:return match))
 
 ;;; ABSOLUTE function
 ;; Form no. 1
