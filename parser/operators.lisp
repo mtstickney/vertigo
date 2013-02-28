@@ -9,15 +9,18 @@
 ;; minus-expression = add-expression '-' add-expression
 ;;                  | add-expression
 
+(meta-sexp:defrule numeric-literal? (&aux match) ()
+  (:with-stored-match (match)
+    (:? (:* (:type digit))
+        (:? #\.))
+    (:+ (:type digit))))
+
 (meta-sexp:defrule numeric-primary? () ()
-  (:or (:and (:* (:type digit))
-             (:? #\.
-                 (:+ (:type digit))))
-       (:and
-        ;; Optional unary op plus a primary
-        (:? (:or (:and "+" (:? (:rule :whitespace)))
-                 (:and "-" (:? (:rule :whitespace)))))
-        (:rule value-place?))
+  ;; Optional unary op
+  (:? (:or (:and "+" (:? (:rule whitespace?)))
+           (:and "-" (:? (:rule whitespace?)))))
+  (:or (:rule numeric-literal?)
+       (:rule place?)
        (:and "("
              (:? (:rule whitespace?))
              (:rule numeric-expression?)
@@ -25,15 +28,58 @@
              ")")
        (:rule :function-call)))
 
-;; For precedence parsing, see http://en.wikipedia.org/wiki/Operator-precedence_parser
-(meta-sexp:defrule numeric-expression? (&aux ) ()
-  ;; Just a recognizer, no precedence parsing
-  (:rule numeric-primary?)
+(defun numeric-binding-power (op)
+  (cond
+    ((or (equal op "+")
+         (equal op "-"))
+     1)
+    ((or (equal op "/")
+         (equal op "*"))
+     2)))
+
+;;; Numeric precedence parser
+(meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()
+  (:assign lhs (:rule numeric-primary?))
   (:*
    (:? (:rule whitespace?))
-   (:or "+" "-" "/" "*")
+   (:assign op (:or "+" "-" "/" "*"))
+   (:? (:rule whitespace))
+   (if (<= (numeric-binding-power op) bind-power)
+       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule numeric-primary?)))
+       ;; Parse up everything with a binding power > op's for the rhs
+       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule numeric-expression?
+                                                           (numeric-binding-power op))))))
+  (:return lhs))
+
+;;; Boolean precedence parser
+(defun boolean-binding-power (op)
+  (cond
+    ((equalp op "OR")
+     1)
+    ((equalp op "AND")
+     2)))
+
+(meta-sexp:defrule boolean-primary? (&aux match) ()
+  (:with-stored-match (match)
+    (:? (:icase "NOT"))
+    (:or (:icase "YES")
+         (:icase "NO")
+         (:icase "TRUE")
+         (:icase "FALSE")
+         (:rule place?))))
+
+(meta-sexp:defrule boolean-expression? (&optional (bind-power 0) &aux match op lhs) ()
+  (:assign lhs (:rule boolean-primary?))
+  (:*
    (:? (:rule whitespace?))
-   (:rule numeric-primary?)))
+   (:assign op (:or (:icase "AND") (:icase "OR")))
+   (:? (:rule whitespace?))
+   (if (<= (boolean-binding-power op) bind-power)
+       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule boolean-primary?)))
+       ;; Parse up everything with a binding power > op's for the rhs
+       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule boolean-expression?
+                                                           (boolean-binding-power op))))))
+  (:return lhs))
 
 ;;; + Unary positive operator
 ;; Form no. 1
