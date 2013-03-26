@@ -9,24 +9,130 @@
 ;; minus-expression = add-expression '-' add-expression
 ;;                  | add-expression
 
-(meta-sexp:defrule numeric-literal? (&aux match) ()
+(meta-sexp:defrule integer-literal? (&aux match (result 0) digit sign) ()
   (:with-stored-match (match)
-    (:? (:* (:type digit))
-        (:? #\.))
-    (:+ (:type digit))))
+    (:+ (:assign digit (:type digit))
+        (setf result (+ (* result 10)
+                        (parse-integer digit))))))
 
-(meta-sexp:defrule numeric-primary? () ()
-  ;; Optional unary op
-  (:? (:or (:and "+" (:? (:rule whitespace?)))
-           (:and "-" (:? (:rule whitespace?)))))
-  (:or (:rule numeric-literal?)
-       (:rule place?)
-       (:and "("
-             (:? (:rule whitespace?))
-             (:rule numeric-expression?)
-             (:? (:rule whitespace?))
-             ")")
-       (:rule :function-call)))
+(meta-sexp:defrule decimal-literal? (&aux match numerator denominator frac) ()
+  (:with-stored-match (match)
+    (:? (:assign numerator (:rule integer)))
+    #\.
+    (:assign frac (:rule integer))
+    ;; fractional part = fraction integer divided by 10^(number of
+    ;; decimal digits)
+    (:assign denominator (/ frac (expt 10 (1+ (floor (log frac 10))))))))
+
+(meta-sexp:defrule numeric-literal? (&aux match number) ()
+  (:with-stored-match (match)
+    (:or (:rule decimal?)
+         (:rule integer?))))
+
+(meta-sexp:defrule date-literal? (&aux match (month 0) (day 0) (year 0)) ()
+  (:with-stored-match (match)
+    (:assign month (:rule integer-literal?))
+    #\/
+    (:assign day (:rule integer-literal?))
+    #\/
+    (:assign year (:rule integer-literal?))))
+
+(meta-sexp:defrule iso8601-time-tz-literal? (&aux match
+                                                  (hour 0)
+                                                  (min 0)
+                                                  (sec 0)
+                                                  (sec-frac 0)
+                                                  (tz-hr 0)
+                                                  (tz-min 0)
+                                                  (has-tz nil)
+                                                  digit)
+    ()
+  (:with-stored-match (match)
+    (:n-times 2 (:assign digit (:type digit))
+              (:assign hour (+ (* hour 10) digit)))
+    #\:
+    (:n-times 2 (:assign digit (:type digit))
+              (:assign min (+ (* min 10) digit)))
+    (:? #\:
+        (:n-times 2 (:assign digit (:type digit))
+                  (:assign sec (+ (* sec 10) digit)))
+        (:? #\.
+            (:assign sec-frac (:rule integer-literal?))))
+    (:? #\+
+        (:n-times 2 (:assign digit (:type digit))
+                  (:assign tz-hr (+ (* tz-hr 10) digit)))
+        #\:
+        (:n-times 2 (:assign digit (:type digit))
+                  (:assign tz-min (+ (* tz-min 10) digit)))
+        (:assign has-tz t))))
+
+;; Should probably be converted to the stricter ISO8601 format
+(meta-sexp:defrule iso8601-datetime-tz-literal? (&aux match
+                                                      (month 0)
+                                                      (day 0)
+                                                      (year 0)
+                                                      time-part
+                                                      digit)
+    ()
+  (:with-stored-match (match)
+    (:n-times 4 (:assign digit (:type digit))
+              (:assign year (+ (* year 10) digit)))
+    #\-
+    (:n-times 2 (:asssign digit (:type digit))
+              (:assign month (+ (* month 10) digit)))
+    #\-
+    (:n-times 2 (:assign digit (:type digit))
+              (:assign day (+ (* day 10) digit)))
+    #\T
+    (:assign time-part (:rule iso8601-time-tz-literal?))))
+
+(meta-sexp:defrule string-datetime-tz-literal? (&aux match
+                                                     (month 0)
+                                                     (day 0)
+                                                     (year 0)
+                                                     time-part
+                                                     digit)
+    ()
+  (:with-stored-match (match)
+    #\"
+    (:n-times 2 (:assign digit (:type digit))
+              (:assign (+ (* month 10) digit)))
+    #\-
+    (:n-times 2 (:assign digit (:type digit))
+              (:assign (+ (* day 10) digit)))
+    #\-
+    (:n-times 4 (:assign digit (:type digit))
+              (:assign (+ (* year 10) digit)))
+    (:+ (:type space))
+    (:assign time-part (:rule iso8601-time-tz-literal?))
+    #\"))
+
+(meta-sexp:defrule string-literal? (&aux match
+                                         (str (meta-sexp:make-char-accum))
+                                         (code 0)
+                                         digit
+                                         char
+                                         quote)
+    ()
+  (:with-stored-match (match)
+    (:assign quote (:or #\" #\'))
+    (:* (:or (:and #\~ (:or (:and #\n (:char-push #\Newline str))
+                            (:and #\t (:char-push #\Tab str))
+                            (:and #\r (:char-push #\Return str))
+                            (:and #\E (:char-push (code-char #o033) str))
+                            (:and #\b (:char-push #\Backspace str))
+                            (:and #\f (:char-push (code-char #o014)))
+                            (:and (:n-times 3 (:assign digit (:type digit))
+                                            ;; Octal digits
+                                            (:assign code (+ (* code 8) digit)))
+                                  (:char-push (code-char code) str))
+                            (:char-push str)))
+             ;; Any unescaped char that isn't the quote
+             (:and (:assign char (:type character))
+                   (:not (eql char quote))
+                   (:char-push char str))))
+    ;; Accept the quote char
+    (eql (meta-sexp:meta (:type character)) quote)))
 
 (defun numeric-binding-power (op)
   (cond
@@ -35,7 +141,7 @@
      1)
     ((or (equal op "/")
          (equal op "*"))
-     2)))
+     2))))
 
 ;;; Numeric precedence parser
 (meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()
