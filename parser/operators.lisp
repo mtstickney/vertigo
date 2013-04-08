@@ -107,6 +107,10 @@
     (:assign time-part (:rule iso8601-time-tz-literal?))
     #\"))
 
+(meta-sexp:defrule datetime-literal? ()
+    (:or (:rule iso8601-datetime-tz-literal?)
+         (:rule string-datetime-tz-literal?)))
+
 (meta-sexp:defrule string-literal? (&aux match
                                          (str (meta-sexp:make-char-accum))
                                          (code 0)
@@ -134,14 +138,112 @@
     ;; Accept the quote char
     (eql (meta-sexp:meta (:type character)) quote)))
 
-(defun numeric-binding-power (op)
+(meta-sexp:defrule boolean-literal? (&aux match) ()
+  (:with-stored-match (match)
+    (:icase (:or "YES"
+                 "NO"
+                 "TRUE"
+                 "FALSE"))))
+
+(meta-sexp:defrule literal? () ()
+  (:or (:rule string-literal?)
+       (:rule boolean-literal?)
+       (:rule datetime-literal?)
+       (:rule date-literal?)
+       (:rule boolean-literal?)))
+
+;; '.' isn't treated as an operator here because we need to use
+;; whitespace to distinguish between field reference and statement separation
+(meta-sexp:defrule buffer-field? (&aux match) ()
+  (:rule identifier)
+  #\.
+  (:rule identifier))
+
+(meta-sexp:defrule atom? (&aux val) ()
+  (:assign val (:or (:rule literal?)
+                    ;; Needs to come before identifier
+                    (:rule buffer-field?)
+                    (:rule identifier?)
+                    (:rule function-call?))))
+
+(defun right-binding-power (op arity)
   (cond
-    ((or (equal op "+")
-         (equal op "-"))
+    ;; Statement terminator, non-binding (should maybe remove this?)
+    ((equal op ".")
+     0)
+    ((equalp op "OR")
      1)
-    ((or (equal op "/")
+    ((equalp op "AND")
+     2)
+    ((equalp op "NOT")
+     3)
+    ((member op '("<" "LT" "<=" "LE" ">" "GT" ">=" "GE" "=" "EQ" "<>" "NE") :test #'equalp)
+     4)
+    ((and (or (equal op "+")
+              (equal op "-"))
+          (eql arity 2))
+     5)
+    ((or (equal op "MODULO")
+         (equal op "/")
          (equal op "*"))
-     2))))
+     6)
+    ((and (or (equal op "+")
+              (equal op "-"))
+          (eql arity 1))
+     7)
+    ((equal op "[") ;; array reference operator
+     8)
+    ((or (equal op ":")
+         (equal op "::"))
+     9)
+    (t (error "Unknown operator ~A"))))
+
+;; TODO: how does associativity work with separators like "."?
+(defun op-associativity (op)
+  (if (or (equalp op "AND")
+          (equalp op "OR"))
+      :right
+      :left))
+
+;; TODO: Add the function-form of IF in here (the ternary)
+(meta-sexp:defrule unary-value? (&aux match op)
+    (:or (:rule atom?)
+         (:and (:assign op (:or "+" "-" (:icase "NOT")))
+               (:? (:rule whitespace?))
+               (:rule expression? (right-binding-power op 1)))
+         (:delimited (:rule whitespace?)
+                     "(" (:rule expression?) ")")))
+
+(meta-sexp:defrule operator? (&aux match) ()
+  (:with-stored-match (match)
+    (:or ":"
+         "::"
+         "MODULO"
+         "/"
+         "*"
+         "+"
+         "-"
+         "NOT"
+         "AND"
+         "OR"
+         "["
+         "<" "LT"
+         ">" "GT"
+         "<=" "LE"
+         ">=" "GE"
+         "=" "EQ"
+         "<>" "NE")))
+
+(meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
+  (:assign lhs (:rule unary-value?))
+  (:*
+   (:? (:rule whitespace?))
+   (:assign op (:rule operator?))
+   (if (<= (right-binding-power op 2) bind-power)
+       (setf )
+       )
+   )
+    )
 
 ;;; Numeric precedence parser
 (meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()
