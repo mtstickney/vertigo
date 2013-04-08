@@ -26,6 +26,19 @@
    - NE/<>
    - MATCHES
    - MODULO
+** Precedence
+   | Operator                     |  Precedence |
+   |------------------------------+-------------|
+   | Unary +, Unary -             | 7 (highest) |
+   | MODULO, /, *                 |           6 |
+   | +, - (all types)             |           5 |
+   | MATCHES, <, <=, >, >=, =, <> |           4 |
+   | NOT                          |           3 |
+   | AND                          |           2 |
+   | OR                           |           1 |
+
+   Other "operators" (:, ::, ., [, (, etc.) have higher precedence than
+   unary +/-.
 ** Operand Types
    - Numeric (Integer | Int64 | Decimal)
    - Integer (-?[0-9]+)
