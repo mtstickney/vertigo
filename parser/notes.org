@@ -1,0 +1,102 @@
+* Operators
+** Operator List
+   - Unary +
+   - Binary +
+     - Addition
+     - Concatenation
+     - Date addition
+   - Unary - 
+   - Binary -
+     - Subtraction
+     - Date subtraction
+     - Datetime subtraction
+   - Binary *
+     - Multiplication
+   - Binary /
+     - Division
+   - AND
+   - OR
+   - NOT
+   - BEGINS
+   - EQ/=
+   - GE/>=
+   - GT/>
+   - LE/<=
+   - LT/<
+   - NE/<>
+   - MATCHES
+   - MODULO
+** Operand Types
+   - Numeric (Integer | Int64 | Decimal)
+   - Integer (-?[0-9]+)
+   - Int64 (ditto)
+   - Decimal ((-?[0-9]+)?.[0-9]+)
+   - Character (\"*\")
+   - LongChar
+   - Unknown
+   - Date
+   - DateTime
+   - DateTimeTZ
+   - Logical
+   - Type T (includes class types)
+   - 
+** Operator Type Tables
+   | Operator | Operand Type 1        | Operand Type 2   | Result Type | Notes                                                                                                                                                      |
+   |----------+-----------------------+------------------+-------------+------------------------------------------------------------------------------------------------------------------------------------------------------------|
+   | +        | Numeric               | N/A              | Numeric     |                                                                                                                                                            |
+   | +        | Integer               | Integer          | Integer     |                                                                                                                                                            |
+   | +        | Decimal               | Decimal          | Decimal     |                                                                                                                                                            |
+   | +        | Integer/Int64         | Decimal          | Decimal     |                                                                                                                                                            |
+   | +        | Integer               | Int64            | Int64       |                                                                                                                                                            |
+   | +        | Character             | Character        | Character   | String concatenation converts to the codepage of the LHS                                                                                                   |
+   | +        | Character             | LongChar         | LongChar    |                                                                                                                                                            |
+   | +        | LongChar              | LongChar         | LongChar    |                                                                                                                                                            |
+   | +        | Unknown               | Character        | Unknown     |                                                                                                                                                            |
+   | +        | Unknown               | LongChar         | Unknown     |                                                                                                                                                            |
+   | +        | Date (LHS)            | Integer (RHS)    | Date        | RHS is number of days to be added                                                                                                                          |
+   | +        | DateTime (LHS)        | Integer (RHS)    | Datetime    | RHS is number of milliseconds to add                                                                                                                       |
+   | +        | DateTimeTZ (LHS)      | Integer (RHS)    | DateTimeTZ  | RHS is number of milliseconds to add                                                                                                                       |
+   | -        | Numeric               | N/A              | Numeric     |                                                                                                                                                            |
+   | -        | Decimal               | Decimal          | Decimal     |                                                                                                                                                            |
+   | -        | Integer               | Integer          | Integer     |                                                                                                                                                            |
+   | -        | Integer/Int64         | Decimal          | Decimal     |                                                                                                                                                            |
+   | -        | Integer               | Int64            | Int64       |                                                                                                                                                            |
+   | -        | Date (LHS)            | Integer (RHS)    | Date        | RHS is number of days to subtract                                                                                                                          |
+   | -        | Date (LHS)            | Date (RHS)       | Integer     | Result is number of days difference                                                                                                                        |
+   | -        | Datetime (LHS)        | Integer (RHS)    | Datetime    | RHS is number of milliseconds to subtract                                                                                                                  |
+   | -        | Datetime (LHS)        | Datetime (RHS)   | Int64       | Result is milliseconds difference                                                                                                                          |
+   | -        | DatetimeTZ (LHS)      | DatetimeTZ (RHS) | Int64       | Ditto                                                                                                                                                      |
+   | -        | DatetimeTZ (LHS)      | Integer (RHS)    | DateTimeTZ  | RHS is difference in milliseconds                                                                                                                          |
+   | *        | Decimal               | Decimal          | Decimal     |                                                                                                                                                            |
+   | *        | Integer               | Integer          | Integer     |                                                                                                                                                            |
+   | *        | Int64                 | Int64            | Int64       |                                                                                                                                                            |
+   | *        | Int64/Integer         | Decimal          | Decimal     |                                                                                                                                                            |
+   | *        | Integer               | Int64            | Int64       |                                                                                                                                                            |
+   | /        | Numeric               | Numeric          | Decimal     | When assigning to Integral, result is *rounded*, not truncated                                                                                             |
+   | /        | Numeric (LHS)         | 0 (RHS)          | Unknown     |                                                                                                                                                            |
+   | AND      | Logical               | Logical          | Logical     |                                                                                                                                                            |
+   | OR       | Logical               | Logical          | Logical     |                                                                                                                                                            |
+   | NOT      | Logical               | N/A              | Logical     |                                                                                                                                                            |
+   | BEGINS   | Character/LongChar    | Character        | Logical     | Always uses codepage collation when working on a Longchar                                                                                                  |
+   | EQ/=     | Type T                | Type T           | Logical     | Integer/Decimal and Character/Longchar may be mixed in comparisons; date types must be converted before comparison; CLOB can only be compared with Unknown |
+   | EQ/=     | Unknown               | Not Unknown      | FALSE       |                                                                                                                                                            |
+   | EQ/=     | Unknown               | Unknown          | TRUE        |                                                                                                                                                            |
+   | GE/>=    | Type T                | Type T           | Logical     | Integer/Decimal and Character/Longchar may be mixed; chars are compared by sort code (collation)                                                           |
+   | GE/>=    | Unknown               | Unknown          | Unknown     |                                                                                                                                                            |
+   | GE/>=    | Unknown               | Not Unknown      | TRUE        |                                                                                                                                                            |
+   | GT/>     | Type T                | Type T           | Logical     | Standard mixing, same as GE/EQ                                                                                                                             |
+   | GT/>     | Unknown               | Unknown          | FALSE       |                                                                                                                                                            |
+   | GT/>     | Unknown               | Not Unknown      | Unknown     |                                                                                                                                                            |
+   | LE/<=    | Type T                | Type T           | Logical     | Standard mixing, same as GE/EQ                                                                                                                             |
+   | LE/<=    | Unknown               | Unknown          | TRUE        |                                                                                                                                                            |
+   | LE/<=    | Unknown               | Not Unknown      | Unknown     |                                                                                                                                                            |
+   | LT/<     | Type T                | Type T           | Logical     |                                                                                                                                                            |
+   | LT/<     | Unknown               | Unknown          | FALSE       |                                                                                                                                                            |
+   | LT/<     | Unknown               | Not Unknown      | Unknown     |                                                                                                                                                            |
+   | NE/<>    | Type T                | Type T           | Logical     |                                                                                                                                                            |
+   | NE/<>    | Unknown               | Unknown          | FALSE       |                                                                                                                                                            |
+   | NE/<>    | Unknown               | Not Unknown      | True        |                                                                                                                                                            |
+   | MATCHES  | Character/Longchar    | Character        | Logical     |                                                                                                                                                            |
+   | MODULO   | Integer/Decimal (LHS) | Integer (RHS)    | Integer     | LHS is rounded if Decimal; base is positive integer; LHS must also be > 0, apparently                                                                      |
+
+
