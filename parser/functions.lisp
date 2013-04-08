@@ -27,9 +27,7 @@
   (:with-stored-match (match)
     (:rule :identifier)
     (:? (:rule whitespace?))
-
-    ;; no-param funcs can omit the parens
-    (:? (:rule param-list?))))
+    (:rule param-list?)))
 
 (meta-sexp:defrule procedure-call? (&aux match) ()
   (:with-stored-match (match)
