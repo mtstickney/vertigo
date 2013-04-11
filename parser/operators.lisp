@@ -238,25 +238,18 @@
   (:assign lhs (:rule unary-value?))
   (:*
    (:? (:rule whitespace?))
-   (:assign op (:rule operator?))
+   ;; While lookahead token is a binary op with binding power >= BIND-POWER
+   (:checkpoint
+    (:assign op (:rule operator?))
+    (>= (right-binding-power op 2) bind-power))
    (let* ((rbp (right-binding-power op 2))
           (rest-rbp (if (eq (op-associativity op) :left)
                         (1+ rbp)
-                        rbp)))
-     (if (>= rbp bind-power)
-         (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule expression? rest-rbp)))
-         (setf lhs (make-op-node :op op :))
-         )
-     )
-   (if (>= (right-binding-power op 2) bind-power)
-       (let* ((rbp (right-binding-power op 2))
-              (next-rbp (if (eq (op-associativity op) :left)
-                            (1+ rbp)
-                            rbp)))
-         (setf lhs (make-op-node :op op :lhs lhs
-                                 :rhs (:rule expression? next-rbp))))
-   )
-    )
+                        rbp))
+          (rhs (meta-sexp:meta (:rule expression? rest-rbp))))
+     (meta-sexp:meta
+      (:and rhs
+            (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
 
 ;;; Numeric precedence parser
 (meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()
