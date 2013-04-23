@@ -42,8 +42,10 @@
 
 (meta-sexp:defrule numeric-literal? (&aux match number) ()
   (:with-stored-match (match)
-    (:or (:rule decimal?)
-         (:rule integer?))))
+    (:assign number
+             (:or (:rule decimal-literal?)
+                  (:rule integer-literal?))))
+  (:return number))
 
 (meta-sexp:defrule date-literal? (&aux match (month 0) (day 0) (year 0)) ()
   (:with-stored-match (match)
