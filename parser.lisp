@@ -32,3 +32,10 @@
                                      (concatenate 'list (cdr args)
                                                   (list match-save))))))
 
+(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :n-times)) &optional args)
+  (let ((count (first args)))
+    (meta-sexp:transform-grammar ret ctx t :and (loop for i from 1 to count
+                                                   append (cdr args)))))
+
+(meta-sexp:defrule whitespace? () ()
+  (:+ (:type meta-sexp:white-space?)))
