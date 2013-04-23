@@ -37,3 +37,6 @@
   (justify)
   (translatable)
   (reserved))
+
+(defstruct boolean-value
+  (val))
