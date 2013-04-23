@@ -144,7 +144,10 @@
                                          (code 0)
                                          digit
                                          char
-                                         quote)
+                                         quote
+                                         (justify :none)
+                                         reserved
+                                         (translatable t))
     ()
   (:with-stored-match (match)
     (:assign quote (:or #\" #\'))
@@ -165,7 +168,24 @@
                     (:not (eql char quote))
                     (:char-push char str)))))
     ;; Accept the quote char
-    (eql (meta-sexp:meta (:type character)) quote)))
+    (eql (meta-sexp:meta (:type character)) quote)
+    (:? #\:
+        (:?
+         (:icase (:or (:and "R"
+                            (:assign justify :right))
+                      (:and "L"
+                            (:assign justify :left))
+                      (:and "C"
+                            (:assign justify :center))
+                      (:and "T"
+                            (:assign justify :trim)))))
+        (:? (:icase "U")
+            (:or (:assign translatable nil) t))
+        (:? (:assign reserved (:rule integer?)))))
+  (:return (make-string-value :str str
+                              :justify justify
+                              :reserved reserved
+                              :translatable translatable)))
 
 (meta-sexp:defrule boolean-literal? (&aux match) ()
   (:with-stored-match (match)
