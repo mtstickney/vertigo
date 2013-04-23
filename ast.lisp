@@ -40,3 +40,11 @@
 
 (defstruct boolean-value
   (val))
+
+(defstruct ident
+  (name))
+
+(defstruct op-node
+  (op)
+  (lhs)
+  (rhs))
