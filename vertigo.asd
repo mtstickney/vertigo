@@ -8,6 +8,7 @@
   :depends-on (#:meta-sexp)
   :components ((:file "package")
                (:file "parser")
+               (:file "ast")
                (:file "parser/operators")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))
