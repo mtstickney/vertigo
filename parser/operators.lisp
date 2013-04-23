@@ -59,74 +59,81 @@
                             :year year)))
 
 (meta-sexp:defrule iso8601-time-tz-literal? (&aux match
-                                                  (hour 0)
-                                                  (min 0)
-                                                  (sec 0)
-                                                  (sec-frac 0)
-                                                  (tz-hr 0)
-                                                  (tz-min 0)
-                                                  (has-tz nil)
-                                                  digit)
+                                                  hour
+                                                  min
+                                                  sec
+                                                  sec-frac
+                                                  (sec-decimals 0)
+                                                  tz-hr
+                                                  tz-min)
     ()
   (:with-stored-match (match)
-    (:n-times 2 (:assign digit (:type digit))
-              (:assign hour (+ (* hour 10) digit)))
+    (:assign hour (:rule integer?))
     #\:
-    (:n-times 2 (:assign digit (:type digit))
-              (:assign min (+ (* min 10) digit)))
+    (:assign min (:rule integer?))
     (:? #\:
-        (:n-times 2 (:assign digit (:type digit))
-                  (:assign sec (+ (* sec 10) digit)))
+        (:assign sec (:rule integer?))
         (:? #\.
-            (:assign sec-frac (:rule integer-literal?))))
+            (multiple-value-bind (n digits) (meta-sexp:meta (:rule integer?))
+              (setf sec-frac n
+                    sec-decimals digits))))
+    ;; TODO: we're making tz-min optional here, which is probably wrong
     (:? #\+
-        (:n-times 2 (:assign digit (:type digit))
-                  (:assign tz-hr (+ (* tz-hr 10) digit)))
+        (:assign tz-hr (:rule integer?))
         #\:
-        (:n-times 2 (:assign digit (:type digit))
-                  (:assign tz-min (+ (* tz-min 10) digit)))
-        (:assign has-tz t))))
+        (:assign tz-min (:rule integer?))))
+  (:return (make-time-value :hour hour
+                            :minute min
+                            :second (or sec 0)
+                            :sec-frac (or sec-frac 0)
+                            :sec-decimals sec-decimals
+                            :tz-hr (or tz-hr 0)
+                            :tz-min (or tz-min 0)
+                            ;; Note the conversion to t/nil
+                            :tz-present (if (and tz-hr tz-min)
+                                            t
+                                            nil))))
 
 ;; Should probably be converted to the stricter ISO8601 format
 (meta-sexp:defrule iso8601-datetime-tz-literal? (&aux match
-                                                      (month 0)
-                                                      (day 0)
-                                                      (year 0)
-                                                      time-part
-                                                      digit)
+                                                      month
+                                                      day
+                                                      year
+                                                      time-part)
     ()
   (:with-stored-match (match)
-    (:n-times 4 (:assign digit (:type digit))
-              (:assign year (+ (* year 10) digit)))
+    (:assign year (:rule integer?))
     #\-
-    (:n-times 2 (:asssign digit (:type digit))
-              (:assign month (+ (* month 10) digit)))
+    (:assign month (:rule integer?))
     #\-
-    (:n-times 2 (:assign digit (:type digit))
-              (:assign day (+ (* day 10) digit)))
+    (:assign day (:rule integer?))
     #\T
-    (:assign time-part (:rule iso8601-time-tz-literal?))))
+    (:assign time-part (:rule iso8601-time-tz-literal?)))
+  (:return (make-datetime-value :date (make-date-value :year year
+                                                       :month month
+                                                       :day day)
+                                :time time-part)))
 
 (meta-sexp:defrule string-datetime-tz-literal? (&aux match
-                                                     (month 0)
-                                                     (day 0)
-                                                     (year 0)
-                                                     time-part
-                                                     digit)
+                                                     month
+                                                     day
+                                                     year
+                                                     time-part)
     ()
   (:with-stored-match (match)
     #\"
-    (:n-times 2 (:assign digit (:type digit))
-              (:assign (+ (* month 10) digit)))
+    (:assign month (:rule integer?))
     #\-
-    (:n-times 2 (:assign digit (:type digit))
-              (:assign (+ (* day 10) digit)))
+    (:assign day (:rule integer?))
     #\-
-    (:n-times 4 (:assign digit (:type digit))
-              (:assign (+ (* year 10) digit)))
-    (:+ (:type space))
+    (:assign year (:rule integer?))
+    (:+ (:type meta-sexp:space?))
     (:assign time-part (:rule iso8601-time-tz-literal?))
-    #\"))
+    #\")
+  (:return (make-datetime-value :date (make-date-value :year year
+                                                       :month month
+                                                       :day day)
+                                :time time-part)))
 
 (meta-sexp:defrule datetime-literal? ()
     (:or (:rule iso8601-datetime-tz-literal?)
