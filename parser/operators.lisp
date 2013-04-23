@@ -47,13 +47,16 @@
                   (:rule integer-literal?))))
   (:return number))
 
-(meta-sexp:defrule date-literal? (&aux match (month 0) (day 0) (year 0)) ()
+(meta-sexp:defrule date-literal? (&aux match month day year) ()
   (:with-stored-match (match)
-    (:assign month (:rule integer-literal?))
+    (:assign month (:rule integer?))
     #\/
-    (:assign day (:rule integer-literal?))
+    (:assign day (:rule integer?))
     #\/
-    (:assign year (:rule integer-literal?))))
+    (:assign year (:rule integer?)))
+  (:return (make-date-value :month month
+                            :day day
+                            :year year)))
 
 (meta-sexp:defrule iso8601-time-tz-literal? (&aux match
                                                   (hour 0)
