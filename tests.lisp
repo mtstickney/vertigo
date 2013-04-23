@@ -183,3 +183,64 @@
                                                  :time time-value)
                    (parse #'vertigo::datetime-literal?
                           "903-874-846T01:23:45.0678+55:66"))))
+
+(define-test string-literal-no-opts
+  (assert-equalp (vertigo::make-string-value :str "abc"
+                                    :justify :none
+                                    :translatable t
+                                    :reserved nil)
+                 (parse #'vertigo::string-literal? "\"abc\""))
+  (assert-equalp (vertigo::make-string-value :str "abc"
+                                    :justify :none
+                                    :translatable t
+                                    :reserved nil)
+                 (parse #'vertigo::string-literal? "'abc'")))
+
+;; TODO: Do we want flags to be case-insensitive?
+(define-test string-literal-flags
+  (assert-equal :left
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':l")))
+  (assert-equal :left
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':L")))
+  (assert-equal :right
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':r")))
+  (assert-equal :right
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':R")))
+  (assert-equal :center
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':c")))
+  (assert-equal :center
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':C")))
+  (assert-equal :trim
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':t")))
+  (assert-equal :trim
+                (vertigo::string-value-justify (parse #'vertigo::string-literal? "'abc':T"))))
+
+(define-test string-literal-translate
+  (assert-equal nil
+                (vertigo::string-value-translatable (parse #'vertigo::string-literal? "'abc':Lu")))
+  (assert-equal nil
+                (vertigo::string-value-translatable (parse #'vertigo::string-literal? "'abc':LU")))
+  (assert-equal t
+                (vertigo::string-value-translatable (parse #'vertigo::string-literal? "'abc':L")))
+  (assert-equal t
+                (vertigo::string-value-translatable (parse #'vertigo::string-literal? "'abc':L45"))))
+
+(define-test string-literal-reserved
+  (assert-equal nil
+                (vertigo::string-value-reserved (parse #'vertigo::string-literal? "'abc':LU")))
+  (assert-equal 50
+                (vertigo::string-value-reserved (parse #'vertigo::string-literal? "'abc':TU50"))))
+
+(define-test string-literal-escapes
+  (let ((str (format nil "~A~A~A~A~A~A~A~A~A"
+                     #\Newline
+                     #\Tab
+                     #\Return
+                     #\Escape
+                     #\Backspace
+                     #\Page
+                     (code-char #o025)
+                     #\G
+                     #\~)))
+    (assert-equal str (vertigo::string-value-str
+                       (parse #'vertigo::string-literal? "'~n~t~r~E~b~f~025~G~~'")))))
