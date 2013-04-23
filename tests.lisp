@@ -58,3 +58,11 @@
 (define-test integral-decimal-end-of-statement
   (assert-equal nil
                 (parse #'vertigo::decimal-literal? "123. ")))
+
+(define-test integral-numeric-literal
+  (assert-equalp (vertigo::make-int-value :val 123)
+                 (parse #'vertigo::numeric-literal? "123")))
+
+(define-test decimal-numeric-literal
+  (assert-equalp (vertigo::make-rational-value :int 123 :frac 456 :decimals 3)
+                 (parse #'vertigo::numeric-literal? "123.456")))
