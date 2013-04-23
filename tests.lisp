@@ -304,3 +304,15 @@
                    (parse #'vertigo::decimal-literal? "4.087"))
     (assert-equalp (vertigo::make-int-value :val 123)
                    (parse #'vertigo::integer-literal? "123"))))
+
+(define-test identifier
+  (assert-equalp (vertigo::make-ident :name "_fo0-bar987_!")
+                 (parse #'vertigo::identifier? "_fo0-bar987_!"))
+  (assert-equalp (vertigo::make-ident :name "04Foo")
+                 (parse #'vertigo::identifier? "04Foo")))
+
+(define-test buffer-field
+  (assert-equalp (vertigo::make-op-node :op "."
+                                        :lhs (vertigo::make-ident :name "flob_4")
+                                        :rhs (vertigo::make-ident :name "pram-pro"))
+                 (parse #'vertigo::buffer-field? "flob_4.pram-pro")))
