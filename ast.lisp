@@ -12,3 +12,22 @@
   (frac)
   ;; Number of decimal digits, useful for sig-fig checks
   (decimals))
+
+(defstruct date-value
+  (month)
+  (day)
+  (year))
+
+(defstruct time-value
+  (hour)
+  (minute)
+  (second)
+  (sec-frac)
+  (sec-decimals)
+  (tz-hr)
+  (tz-min)
+  (tz-present))
+
+(defstruct datetime-value
+  (date)
+  (time))
