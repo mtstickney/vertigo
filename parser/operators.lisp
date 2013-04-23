@@ -1,3 +1,5 @@
+(in-package #:vertigo)
+
 ;;; Custom numeric expression rule
 ;; value = number-literal | var-place | ( expression ) | - value
 ;;       | + value | funcall
@@ -9,11 +11,21 @@
 ;; minus-expression = add-expression '-' add-expression
 ;;                  | add-expression
 
-(meta-sexp:defrule integer-literal? (&aux match (result 0) digit sign) ()
+(meta-sexp:defrule integer? (&aux (digits 0) (result 0) d) ()
+  (:+ (:assign d (:type meta-sexp:digit?))
+      (setf result (+ (* result 10) (digit-char-p d)))
+      (incf digits))
+  (:return result digits))
+
+(meta-sexp:defrule integer-literal? (&aux match (result 0)) ()
   (:with-stored-match (match)
-    (:+ (:assign digit (:type digit))
-        (setf result (+ (* result 10)
-                        (parse-integer digit))))))
+    (:assign result (:rule integer?)))
+  (:return (make-int-value :val result)))
+
+(defun digits (n &optional (base 10))
+  (check-type n integer)
+  (if (= n 0)
+      (1+ (floor (log n base)))))
 
 (meta-sexp:defrule decimal-literal? (&aux match numerator denominator frac) ()
   (:with-stored-match (match)
