@@ -244,3 +244,25 @@
                      #\~)))
     (assert-equal str (vertigo::string-value-str
                        (parse #'vertigo::string-literal? "'~n~t~r~E~b~f~025~G~~'")))))
+
+(define-test boolean-true-literal
+  (let ((boolean-value (vertigo::make-boolean-value :val t)))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "yes"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "YES"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "true"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "TRUE"))))
+
+(define-test boolean-false-literal
+  (let ((boolean-value (vertigo::make-boolean-value :val nil)))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "no"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "NO"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "false"))
+    (assert-equalp boolean-value
+                   (parse #'vertigo::boolean-literal? "FALSE"))))
