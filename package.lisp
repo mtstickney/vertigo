@@ -6,3 +6,5 @@
 (defpackage #:vertigo
   (:use #:cl))
 
+(defpackage #:vertigo-test
+  (:use #:cl #:vertigo #:lisp-unit))
