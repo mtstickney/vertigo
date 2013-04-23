@@ -251,7 +251,7 @@
     ((or (equal op ":")
          (equal op "::"))
      9)
-    (t (error "Unknown operator ~A"))))
+    (t (error "Unknown operator ~A" op))))
 
 ;; TODO: how does associativity work with separators like "."?
 (defun op-associativity (op)
