@@ -205,10 +205,14 @@
 
 ;; '.' isn't treated as an operator here because we need to use
 ;; whitespace to distinguish between field reference and statement separation
-(meta-sexp:defrule buffer-field? (&aux match) ()
-  (:rule identifier)
-  #\.
-  (:rule identifier))
+(meta-sexp:defrule buffer-field? (&aux match buf field) ()
+  (:with-stored-match (match)
+    (:assign buf (:rule identifier?))
+    #\.
+    (:assign field (:rule identifier?)))
+  (:return (make-op-node :op "."
+                         :lhs buf
+                         :rhs field)))
 
 (meta-sexp:defrule atom? (&aux val) ()
   (:assign val (:or (:rule literal?)
