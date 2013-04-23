@@ -153,16 +153,17 @@
                             (:and #\r (:char-push #\Return str))
                             (:and #\E (:char-push (code-char #o033) str))
                             (:and #\b (:char-push #\Backspace str))
-                            (:and #\f (:char-push (code-char #o014)))
-                            (:and (:n-times 3 (:assign digit (:type digit))
+                            (:and #\f (:char-push (code-char #o014) str))
+                            (:and (:n-times 3 (:assign digit (:type meta-sexp:digit?))
                                             ;; Octal digits
-                                            (:assign code (+ (* code 8) digit)))
+                                            (:assign code (+ (* code 8) (digit-char-p digit))))
                                   (:char-push (code-char code) str))
                             (:char-push str)))
              ;; Any unescaped char that isn't the quote
-             (:and (:assign char (:type character))
-                   (:not (eql char quote))
-                   (:char-push char str))))
+             (:checkpoint
+              (:and (:assign char (:type character))
+                    (:not (eql char quote))
+                    (:char-push char str)))))
     ;; Accept the quote char
     (eql (meta-sexp:meta (:type character)) quote)))
 
