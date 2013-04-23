@@ -135,9 +135,9 @@
                                                        :day day)
                                 :time time-part)))
 
-(meta-sexp:defrule datetime-literal? ()
-    (:or (:rule iso8601-datetime-tz-literal?)
-         (:rule string-datetime-tz-literal?)))
+(meta-sexp:defrule datetime-literal? () ()
+  (:or (:rule string-datetime-tz-literal?)
+       (:rule iso8601-datetime-tz-literal?)))
 
 (meta-sexp:defrule string-literal? (&aux match
                                          (str (meta-sexp:make-char-accum))
