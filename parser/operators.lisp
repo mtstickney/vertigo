@@ -187,12 +187,14 @@
                               :reserved reserved
                               :translatable translatable)))
 
-(meta-sexp:defrule boolean-literal? (&aux match) ()
+(meta-sexp:defrule boolean-literal? (&aux match val) ()
   (:with-stored-match (match)
-    (:icase (:or "YES"
-                 "NO"
-                 "TRUE"
-                 "FALSE"))))
+    (:or (:and (:icase (:or "YES" "TRUE"))
+               (:assign val t))
+         (:and (:icase (:or "NO" "FALSE"))
+               ;; ensure the value of :assign doesn't end the match
+               (:or (:assign val nil) t))))
+  (:return (make-boolean-value :val val)))
 
 (meta-sexp:defrule literal? () ()
   (:or (:rule string-literal?)
