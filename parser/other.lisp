@@ -1,3 +1,16 @@
+(in-package #:vertigo)
+
+;; TODO: Not sure about having #\* in here
+(deftype identifier-char () `(or meta-sexp:alnum? (member #\_ #\- #\! #\*)))
+
+;;; Identifier rule
+;;; Note that it is liberal and accepts "invalid" identifiers
+;;; (e.g. leading numbers) as long as they don't conflict with other
+;;; rules (e.g. the '-' operator rule)
+(meta-sexp:defrule identifier? (&aux match) ()
+  (:with-stored-match (match)
+    (:+ (:type identifier-char)))
+  (:return (make-ident :name match)))
 
 ;;; “ ” Character-string literal
 ;; Form no. 1
