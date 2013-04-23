@@ -266,3 +266,41 @@
                    (parse #'vertigo::boolean-literal? "false"))
     (assert-equalp boolean-value
                    (parse #'vertigo::boolean-literal? "FALSE"))))
+
+;; The literal rule should accept all these things, try a basic test
+;; for each
+(define-test literal
+  (let ((date-value (vertigo::make-date-value :month 874
+                                              :day 846
+                                              :year 903))
+        (time-value (vertigo::make-time-value :hour 01
+                                              :minute 23
+                                              :second 45
+                                              :sec-frac 678
+                                              :sec-decimals 4
+                                              :tz-hr 55
+                                              :tz-min 66
+                                              :tz-present t)))
+    (assert-equalp (vertigo::make-string-value :str "foo"
+                                               :justify :left
+                                               :translatable t
+                                               :reserved nil)
+                   (parse #'vertigo::literal? "\"foo\":L"))
+    (assert-equalp (vertigo::make-boolean-value :val t)
+                   (parse #'vertigo::literal? "YES"))
+    (assert-equalp (vertigo::make-datetime-value :date date-value
+                                                 :time time-value)
+                   (parse #'vertigo::datetime-literal?
+                          "903-874-846T01:23:45.0678+55:66"))
+    (assert-equalp (vertigo::make-datetime-value :date date-value
+                                                 :time time-value)
+                   (parse #'vertigo::string-datetime-tz-literal?
+                          "\"874-846-903   01:23:45.0678+55:66\""))
+    (assert-equalp (vertigo::make-date-value :month 10
+                                             :day 3
+                                             :year 900)
+                   (parse #'vertigo::date-literal? "10/3/900"))
+    (assert-equalp (vertigo::make-rational-value :int 4 :frac 87 :decimals 3)
+                   (parse #'vertigo::decimal-literal? "4.087"))
+    (assert-equalp (vertigo::make-int-value :val 123)
+                   (parse #'vertigo::integer-literal? "123"))))
