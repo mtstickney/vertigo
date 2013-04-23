@@ -27,14 +27,18 @@
   (if (= n 0)
       (1+ (floor (log n base)))))
 
-(meta-sexp:defrule decimal-literal? (&aux match numerator denominator frac) ()
+;; Note: decimal literal doesn't do integral literals (type promotion
+;; handles that)
+(meta-sexp:defrule decimal-literal? (&aux match numerator) ()
   (:with-stored-match (match)
-    (:? (:assign numerator (:rule integer)))
+    (:? (:assign numerator (:rule integer?)))
     #\.
-    (:assign frac (:rule integer))
-    ;; fractional part = fraction integer divided by 10^(number of
-    ;; decimal digits)
-    (:assign denominator (/ frac (expt 10 (1+ (floor (log frac 10))))))))
+    (multiple-value-bind (num digits) (meta-sexp:meta (:rule integer?))
+      (and num
+           (meta-sexp:meta (:return (make-rational-value
+                                     :int (or numerator 0)
+                                     :frac num
+                                     :decimals digits)))))))
 
 (meta-sexp:defrule numeric-literal? (&aux match number) ()
   (:with-stored-match (match)
