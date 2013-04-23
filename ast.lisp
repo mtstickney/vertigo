@@ -31,3 +31,9 @@
 (defstruct datetime-value
   (date)
   (time))
+
+(defstruct string-value
+  (str)
+  (justify)
+  (translatable)
+  (reserved))
