@@ -9,6 +9,7 @@
   :components ((:file "package")
                (:file "parser")
                (:file "ast")
+               (:file "parser/other")
                (:file "parser/operators")
                (:file "tests")))
 
