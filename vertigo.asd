@@ -5,11 +5,12 @@
   :description "Describe vertigo here"
   :author "Your Name <your.name@example.com>"
   :license "Specify license here"
-  :depends-on (#:meta-sexp)
+  :depends-on (#:meta-sexp #:lisp-unit)
   :components ((:file "package")
                (:file "parser")
                (:file "ast")
-               (:file "parser/operators")))
+               (:file "parser/operators")
+               (:file "tests")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))
   ;; Need a lot of macroexpansion room for meta-sexp rules
