@@ -189,12 +189,16 @@
 
 (meta-sexp:defrule boolean-literal? (&aux match val) ()
   (:with-stored-match (match)
-    (:or (:and (:icase (:or "YES" "TRUE"))
-               (:assign val t))
-         (:and (:icase (:or "NO" "FALSE"))
-               ;; ensure the value of :assign doesn't end the match
-               (:or (:assign val nil) t))))
-  (:return (make-boolean-value :val val)))
+    (:and (:or (:and (:icase (:or "YES" "TRUE"))
+                     (:assign val t)
+                     (:or (format *debug-io* "Positive result~%") t))
+               (:and (:icase (:or "NO" "FALSE"))
+                     ;; ensure the value of :assign doesn't end the match
+                     (:or (:assign val nil) t)
+                     (:or (format *debug-io* "Negative result~%") t)))
+          ;; boolean followed by another character isn't a boolean
+          (:not (:type identifier-char))
+          (:return (make-boolean-value :val val)))))
 
 (meta-sexp:defrule literal? () ()
   (:or (:rule string-literal?)
@@ -261,11 +265,12 @@
       :left))
 
 ;; TODO: Add the function-form of IF in here (the ternary)
-(meta-sexp:defrule unary-value? (&aux match op) ()
+(meta-sexp:defrule unary-value? (&aux match op expr) ()
   (:or (:rule atom?)
        (:and (:assign op (:or "+" "-" (:icase "NOT")))
              (:? (:rule whitespace?))
-             (:rule expression? (right-binding-power op 1)))
+             (:assign expr (:rule expression? (right-binding-power op 1)))
+             (make-unary-op-node :op op :val expr))
        (:delimited (:rule whitespace?)
                    "(" (:rule expression?) ")")))
 
@@ -275,6 +280,7 @@
          "::"
          "MODULO"
          "/"
+
          "*"
          "+"
          "-"
@@ -293,18 +299,25 @@
   (:assign lhs (:rule unary-value?))
   (:*
    (:? (:rule whitespace?))
+   (:or (format *debug-io* "Whitespace~%") t)
    ;; While lookahead token is a binary op with binding power >= BIND-POWER
    (:checkpoint
     (:assign op (:rule operator?))
-    (>= (right-binding-power op 2) bind-power))
+    (:or (format *debug-io* "Binary op is ~S, RBP of ~S (current RBP is ~S)~%" op (right-binding-power op 2) bind-power) t)
+    (>= (right-binding-power op 2) bind-power)
+    (:or (format *debug-io* "Binary op with greater binding power~%") t))
+   (:? (:rule whitespace?))
    (let* ((rbp (right-binding-power op 2))
           (rest-rbp (if (eq (op-associativity op) :left)
                         (1+ rbp)
                         rbp))
           (rhs (meta-sexp:meta (:rule expression? rest-rbp))))
+     (format *debug-io* "RBP is ~S, next BP is ~S, rhs is ~S~%" rbp rest-rbp rhs)
      (meta-sexp:meta
       (:and rhs
-            (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
+            (:or (format *debug-io* "Creating node~%") t)
+            (setf lhs (make-op-node :op op :lhs lhs :rhs rhs))))))
+  (:return  lhs))
 
 ;;; Numeric precedence parser
 (meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()

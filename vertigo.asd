@@ -11,6 +11,7 @@
                (:file "ast")
                (:file "parser/other")
                (:file "parser/operators")
+               (:file "parser/functions")
                (:file "tests")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))

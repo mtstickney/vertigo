@@ -48,3 +48,7 @@
   (op)
   (lhs)
   (rhs))
+
+(defstruct unary-op-node
+  (op)
+  (val))

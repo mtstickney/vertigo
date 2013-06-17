@@ -1,4 +1,4 @@
-(meta-sexp:defrule param-spec? (&aux match)
+(meta-sexp:defrule param-spec? (&aux match) ()
   (:or (:and (:icase "input")
              (:rule whitespace?)
              (:rule value-expression?))
@@ -7,8 +7,8 @@
              (:rule whitespace?)
              (:rule place?))))
 
-(meta-sexp:defrule param-list? (&aux match)
-  (:with-stored-match
+(meta-sexp:defrule param-list? (&aux match) ()
+  (:with-stored-match (match)
       "("
     (:? (:rule whitespace?))
 
@@ -25,7 +25,7 @@
 ;;; May not be a bit overly permissive of arg specs.
 (meta-sexp:defrule function-call? (&aux match) ()
   (:with-stored-match (match)
-    (:rule :identifier)
+    (:rule identifier?)
     (:? (:rule whitespace?))
     (:rule param-list?)))
 

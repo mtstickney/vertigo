@@ -316,3 +316,29 @@
                                         :lhs (vertigo::make-ident :name "flob_4")
                                         :rhs (vertigo::make-ident :name "pram-pro"))
                  (parse #'vertigo::buffer-field? "flob_4.pram-pro")))
+
+(define-test operator-associativity
+  (assert-equalp (vertigo::make-op-node :op "-"
+                                        :lhs (vertigo::make-op-node :op "-"
+                                                                    :lhs (vertigo::make-ident :name "foo")
+                                                                    :rhs (vertigo::make-ident :name "bar"))
+                                        :rhs (vertigo::make-ident :name "baz"))
+                 (parse #'vertigo::expression? "foo - bar - baz"))
+  (assert-equalp (vertigo::make-op-node :op "AND"
+                                        :lhs (vertigo::make-ident :name "foo")
+                                        :rhs (vertigo::make-op-node :op "AND"
+                                                                    :lhs (vertigo::make-ident :name "bar")
+                                                                    :rhs (vertigo::make-ident :name "baz")))
+                 (parse #'vertigo::expression? "foo AND bar AND baz")))
+
+(define-test operator-precedence
+  (assert-equalp (vertigo::make-op-node :op "-"
+                                        :lhs (vertigo::make-op-node :op "+"
+                                                                    :lhs (vertigo::make-int-value :val 1)
+                                                                    :rhs (vertigo::make-op-node :op "/"
+                                                                                                :lhs (vertigo::make-op-node :op "*"
+                                                                                                                            :lhs (vertigo::make-int-value :val 2)
+                                                                                                                            :rhs (vertigo::make-int-value :val 3))
+                                                                                                :rhs (vertigo::make-int-value :val 4)))
+                                        :rhs (vertigo::make-int-value :val 5))
+                 (parse #'vertigo::expression? "1 + 2 * 3 / 4 - 5")))
