@@ -190,12 +190,10 @@
 (meta-sexp:defrule boolean-literal? (&aux match val) ()
   (:with-stored-match (match)
     (:and (:or (:and (:icase (:or "YES" "TRUE"))
-                     (:assign val t)
-                     (:or (format *debug-io* "Positive result~%") t))
+                     (:assign val t))
                (:and (:icase (:or "NO" "FALSE"))
                      ;; ensure the value of :assign doesn't end the match
-                     (:or (:assign val nil) t)
-                     (:or (format *debug-io* "Negative result~%") t)))
+                     (:or (:assign val nil) t)))
           ;; boolean followed by another character isn't a boolean
           (:not (:type identifier-char))
           (:return (make-boolean-value :val val)))))
@@ -205,6 +203,7 @@
        (:rule boolean-literal?)
        (:rule datetime-literal?)
        (:rule date-literal?)
+       (:rule numeric-literal?)
        (:rule boolean-literal?)))
 
 ;; '.' isn't treated as an operator here because we need to use
@@ -271,8 +270,9 @@
              (:? (:rule whitespace?))
              (:assign expr (:rule expression? (right-binding-power op 1)))
              (make-unary-op-node :op op :val expr))
-       (:delimited (:rule whitespace?)
-                   "(" (:rule expression?) ")")))
+       (:and (:delimited (:rule whitespace?)
+                         "(" (:assign expr (:rule expression?)) ")")
+             (:return expr))))
 
 (meta-sexp:defrule operator? (&aux match) ()
   (:with-stored-match (match)
