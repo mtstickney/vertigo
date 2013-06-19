@@ -1,3 +1,5 @@
+(in-package :vertigo)
+
 (meta-sexp:defrule param-spec? (&aux match) ()
   (:or (:and (:icase "input")
              (:rule whitespace?)
