@@ -308,7 +308,9 @@
   (assert-equalp (vertigo::make-ident :name "_fo0-bar987_!")
                  (parse #'vertigo::identifier? "_fo0-bar987_!"))
   (assert-equalp (vertigo::make-ident :name "04Foo")
-                 (parse #'vertigo::identifier? "04Foo")))
+                 (parse #'vertigo::identifier? "04Foo"))
+  (assert-equalp (vertigo::make-ident :name "foo-")
+                (parse #'vertigo::identifier? "foo-")))
 
 (define-test buffer-field
   (assert-equalp (vertigo::make-op-node :op "."
