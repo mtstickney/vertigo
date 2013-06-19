@@ -397,3 +397,5 @@
                         :lhs (vertigo::make-int-value :val 4)
                         :rhs (vertigo::make-int-value :val 5)))
                  (parse #'vertigo::expression? "(1 + 2) * -3 / (4 - 5)")))
+
+;;; TODO: Add tests for function-call, since we're compiling that in now
