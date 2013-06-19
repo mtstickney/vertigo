@@ -318,6 +318,36 @@
                                         :rhs (vertigo::make-ident :name "pram-pro"))
                  (parse #'vertigo::buffer-field? "flob_4.pram-pro")))
 
+(define-test unary-nospace
+  (assert-equalp (vertigo::make-unary-op-node :op "-"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "-foo"))
+  (assert-equalp (vertigo::make-unary-op-node :op "+"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "+foo"))
+  (assert-equalp (vertigo::make-ident :name "foo")
+                 (parse #'vertigo::unary-value? "(foo)")))
+
+(define-test unary-space
+  (assert-equalp (vertigo::make-unary-op-node :op "-"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "- foo"))
+  (assert-equalp (vertigo::make-unary-op-node :op "+"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "+ foo"))
+  (assert-equalp (vertigo::make-ident :name "foo")
+                 (parse #'vertigo::unary-value? "( foo )"))
+  (assert-equalp (vertigo::make-unary-op-node :op "NOT"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "NOT foo"))
+  (assert-equalp (vertigo::make-unary-op-node :op "NOT"
+                                              :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::unary-value? "not foo")))
+
+(define-test unary-atom
+  (assert-equalp (vertigo::make-ident :name "foo")
+                 (parse #'vertigo::unary-value? "foo")))
+
 (define-test operator-associativity
   (assert-equalp (vertigo::make-op-node :op "-"
                                         :lhs (vertigo::make-op-node :op "-"
