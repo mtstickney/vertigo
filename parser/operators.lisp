@@ -265,14 +265,21 @@
 
 ;; TODO: Add the function-form of IF in here (the ternary)
 (meta-sexp:defrule unary-value? (&aux match op expr) ()
-  (:or (:and (:assign op (:or "+" "-" (:and (:icase "NOT") (:rule whitespace?))))
-             (:? (:rule whitespace?))
-             (:assign expr (:rule expression? (right-binding-power op 1)))
-             (make-unary-op-node :op op :val expr))
-       (:rule atom?)
-       (:and (:delimited (:rule whitespace?)
-                         "(" (:assign expr (:rule expression?)) ")")
-             (:return expr))))
+  (:or
+   ;; Unary operator followed by expression
+   (:checkpoint
+    (:and
+     (:or (:and (:assign op (:or "+" "-"))
+                (:? (:rule whitespace?)))
+          (:and (:assign op (:icase "NOT"))
+                (:not (:type identifier-char))
+                (:rule whitespace?)))
+     (:assign expr (:rule expression? (right-binding-power op 1)))
+     (:return (make-unary-op-node :op op :val expr))))
+   (:rule atom?)
+   (:and (:delimited (:? (:rule whitespace?))
+                     "(" (:assign expr (:rule expression?)) ")")
+         (:return expr))))
 
 (meta-sexp:defrule operator? (&aux match) ()
   (:with-stored-match (match)
