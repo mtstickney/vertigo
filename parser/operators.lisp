@@ -321,50 +321,6 @@
             (setf lhs (make-op-node :op op :lhs lhs :rhs rhs))))))
   (:return  lhs))
 
-;;; Numeric precedence parser
-(meta-sexp:defrule numeric-expression? (&optional (bind-power 0) &aux match op lhs) ()
-  (:assign lhs (:rule numeric-primary?))
-  (:*
-   (:? (:rule whitespace?))
-   (:assign op (:or "+" "-" "/" "*"))
-   (:? (:rule whitespace))
-   (if (<= (numeric-binding-power op) bind-power)
-       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule numeric-primary?)))
-       ;; Parse up everything with a binding power > op's for the rhs
-       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule numeric-expression?
-                                                           (numeric-binding-power op))))))
-  (:return lhs))
-
-;;; Boolean precedence parser
-(defun boolean-binding-power (op)
-  (cond
-    ((equalp op "OR")
-     1)
-    ((equalp op "AND")
-     2)))
-
-(meta-sexp:defrule boolean-primary? (&aux match) ()
-  (:with-stored-match (match)
-    (:? (:icase "NOT"))
-    (:or (:icase "YES")
-         (:icase "NO")
-         (:icase "TRUE")
-         (:icase "FALSE")
-         (:rule place?))))
-
-(meta-sexp:defrule boolean-expression? (&optional (bind-power 0) &aux match op lhs) ()
-  (:assign lhs (:rule boolean-primary?))
-  (:*
-   (:? (:rule whitespace?))
-   (:assign op (:or (:icase "AND") (:icase "OR")))
-   (:? (:rule whitespace?))
-   (if (<= (boolean-binding-power op) bind-power)
-       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule boolean-primary?)))
-       ;; Parse up everything with a binding power > op's for the rhs
-       (setf lhs (make-op-node :op op :lhs lhs :rhs (:rule boolean-expression?
-                                                           (boolean-binding-power op))))))
-  (:return lhs))
-
 ;;; + Unary positive operator
 ;; Form no. 1
 (meta-sexp:defrule rule3331? () ()
