@@ -9,15 +9,15 @@
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited)) &optional args)
   (let ((delimiter (first args)))
-    (meta-sexp:transform-grammar ret ctx t :and (join-list (cdr args) delimiter))))
+    (meta-sexp:transform-grammar ret ctx t :checkpoint (join-list (cdr args) delimiter))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited*)) &optional args)
   (let ((delimiter (first args))
         (term-items (cdr args)))
-    (meta-sexp:transform-grammar ret ctx t :and
+    (meta-sexp:transform-grammar ret ctx t :checkpoint
                                  `(,@term-items
-                                     (:* ,delimiter
-                                         ,@term-items)))))
+                                   (:* (:checkpoint ,delimiter
+                                                    ,@term-items))))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :cursor)) &optional args)
   (declare (ignore args))
