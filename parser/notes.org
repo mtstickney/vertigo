@@ -113,3 +113,7 @@
    | MODULO   | Integer/Decimal (LHS) | Integer (RHS)    | Integer     | LHS is rounded if Decimal; base is positive integer; LHS must also be > 0, apparently                                                                      |
 
 
+* Preprocessor
+** Scoped defines
+   &SCOPED-DEFINE'd stuff is still in scope inside includes, unless
+   overridden by a passed param.
