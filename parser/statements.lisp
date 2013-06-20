@@ -14,16 +14,26 @@
 ;; Form no. 2
 (meta-sexp:defrule rule2178? () ()
   (:delimited (:rule whitespace?)
-              (:icase "WAIT-FOR") (:rule rule2172?)
+              (:icase "WAIT-FOR") (:rule event-list?)
               (:icase "OF") (:rule rule2173?)
-              (:* (:checkpoint (:icase "OR") (:rule rule2172?)
+              (:* (:checkpoint (:icase "OR") (:rule event-list?)
                                (:icase "OF") (:rule rule2173?)))
               (:? (:icase "FOCUS") (:rule rule2176?))
    (:? (:and "PAUSE" (:rule expression?)))))
 
+(meta-sexp:defrule event? (&aux match) ()
+  (:or (:rule string-literal?)
+       (:rule identifier?)))
+
 ;; event-list
-(meta-sexp:defrule rule2172? () ()
-)
+(meta-sexp:defrule event-list? (&aux event (list (meta-sexp:make-list-accum))) ()
+  (:delimited* (:and (:? (:rule whitespace?))
+                     (:? #\,)
+                     (:? (:rule whitespace?)))
+               (:not (:icase "OF"))
+               (:assign event (:rule event?))
+               (:list-push event list))
+  (:return (make-list-box :list (nreverse list))))
 
 ;; widget-list
 (meta-sexp:defrule rule2173? () ()
