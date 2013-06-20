@@ -11,9 +11,6 @@
 
   (:return (vertigo::make-param :type type :val expr)))
 
-(meta-sexp:defrule thingy () ()
-  (:delimited* #\,
-               "a"))
 (meta-sexp:defrule param-list? (&aux match param (list (meta-sexp:make-list-accum))) ()
   (:with-stored-match (match)
       "("
