@@ -1,21 +1,25 @@
+(in-package :vertigo)
 
 ;;; WAIT-FOR statement
 ;; Form no. 1
 (meta-sexp:defrule rule2171? () ()
-  (:and "WAIT-FOR" "\"" "WEB-NOTIFY" "\"" "OF" "DEFAULT-WINDOW"
-   (:? (:and "PAUSE" (:rule rule2170?))) (:? "EXCLUSIVE-WEB-USER")))
-
-;; n
-(meta-sexp:defrule rule2170? () ()
-)
-
+  (:delimited (:rule whitespace?)
+              (:icase "WAIT-FOR") (:? "\"") (:icase "WEB-NOTIFY") (:? "\"")
+              (:icase "OF") (:icase "DEFAULT-WINDOW")
+              (:? (:checkpoint (:and (:icase "PAUSE")
+                                     (:? (:rule whitespace?))
+                                     (:rule expression?))))
+              (:? (:icase "EXCLUSIVE-WEB-USER"))))
 
 ;; Form no. 2
 (meta-sexp:defrule rule2178? () ()
-  (:and "WAIT-FOR" (:rule rule2172?) "OF" (:rule rule2173?)
-   (:* (:? (:and "OR" (:rule rule2174?) "OF" (:rule rule2175?))))
-   (:? (:rule whitespace?)) (:? (:and "FOCUS" (:rule rule2176?)))
-   (:? (:and "PAUSE" (:rule rule2177?)))))
+  (:delimited (:rule whitespace?)
+              (:icase "WAIT-FOR") (:rule rule2172?)
+              (:icase "OF") (:rule rule2173?)
+              (:* (:checkpoint (:icase "OR") (:rule rule2172?)
+                               (:icase "OF") (:rule rule2173?)))
+              (:? (:icase "FOCUS") (:rule rule2176?))
+   (:? (:and "PAUSE" (:rule expression?)))))
 
 ;; event-list
 (meta-sexp:defrule rule2172? () ()
@@ -23,14 +27,6 @@
 
 ;; widget-list
 (meta-sexp:defrule rule2173? () ()
-)
-
-;; event-list
-(meta-sexp:defrule rule2174? () ()
-)
-
-;; widget-list
-(meta-sexp:defrule rule2175? () ()
 )
 
 ;; widget
