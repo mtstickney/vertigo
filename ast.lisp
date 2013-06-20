@@ -57,8 +57,8 @@
   (type :input)
   (val))
 
-(defstruct param-list
-  (params))
+(defstruct list-box
+  (list))
 
 (defstruct call
   (type)

@@ -27,7 +27,7 @@
                      (:? (:rule whitespace?))))
     (:? (:rule whitespace?))
     ")")
-  (:return (vertigo::make-param-list :params (nreverse list))))
+  (:return (vertigo::make-list-box :list (nreverse list))))
 
 ;;; Custom function call rule, for user-defined and builtin functions.
 ;;; May not be a bit overly permissive of arg specs.
@@ -38,7 +38,7 @@
     (:assign params (:rule param-list?)))
   (:return (vertigo::make-call :type :function
                                :func func
-                               :params (param-list-params params))))
+                               :params (list-box-list params))))
 
 ;;; NOTE: procedure calls aren't a simple extension of funcalls (there
 ;;; can be options between the procedure ident and the parameter list

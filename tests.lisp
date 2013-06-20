@@ -448,25 +448,25 @@
                  (parse #'vertigo::param-spec? "1 + 2")))
 
 (define-test empty-parameter-list
-  (let ((empty-plist (vertigo::make-param-list :params '())))
+  (let ((empty-plist (vertigo::make-list-box :list '())))
     (assert-equalp empty-plist
                    (parse #'vertigo::param-list? "()"))
     (assert-equalp empty-plist
                    (parse #'vertigo::param-list? "(  )"))))
 
 (define-test single-parameter-list
-  (let ((single-plist (vertigo::make-param-list
-                       :params (list (vertigo::make-param
-                                      :type :input
-                                      :val (vertigo::make-ident :name "foo"))))))
+  (let ((single-plist (vertigo::make-list-box
+                       :list (list (vertigo::make-param
+                                    :type :input
+                                    :val (vertigo::make-ident :name "foo"))))))
     (assert-equalp single-plist
                    (parse #'vertigo::param-list? "(INPUT foo)"))
     (assert-equalp single-plist
                    (parse #'vertigo::param-list? "( INPUT foo )"))))
 
 (define-test multi-parameter-list
-  (let ((multi-plist (vertigo::make-param-list
-                      :params
+  (let ((multi-plist (vertigo::make-list-box
+                      :list
                       (list (vertigo::make-param :type :input-output
                                                  :val (vertigo::make-ident :name "foo"))
                             (vertigo::make-param :type :input
