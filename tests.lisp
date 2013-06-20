@@ -499,3 +499,32 @@
                    (parse #'vertigo::function-call? "Foo(OUTPUT bar, baz)"))
     (assert-equalp call
                    (parse #'vertigo::function-call? "Foo (OUTPUT bar, baz)"))))
+
+(define-test unquoted-event
+  (assert-equalp (vertigo::make-ident :name "BUTTON-1")
+                 (parse #'vertigo::event? "BUTTON-1")))
+
+(define-test quoted-event
+  (assert-equalp (vertigo::make-string-value :str "BUTTON-1")
+                 (parse #'vertigo::event? "\"BUTTON-1\"")))
+
+(define-test whitespace-event-list
+  (assert-equalp (vertigo::make-list-box
+                  :list (list (vertigo::make-ident :name "foo")
+                              (vertigo::make-string-value :str "bar")
+                              (vertigo::make-ident :name "baz")))
+                 (parse #'vertigo::event-list? "foo \"bar\" baz")))
+
+(define-test comma-event-list
+  (assert-equalp (vertigo::make-list-box
+                  :list (list (vertigo::make-ident :name "foo")
+                              (vertigo::make-string-value :str "bar")
+                              (vertigo::make-ident :name "baz")))
+                 (parse #'vertigo::event-list? "foo,\"bar\" , baz")))
+
+(define-test mixed-event-list
+  (assert-equalp (vertigo::make-list-box
+                  :list (list (vertigo::make-ident :name "foo")
+                              (vertigo::make-string-value :str "bar")
+                              (vertigo::make-ident :name "baz")))
+                 (parse #'vertigo::event-list? "foo,\"bar\"  baz")))
