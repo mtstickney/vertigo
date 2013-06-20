@@ -399,3 +399,105 @@
                  (parse #'vertigo::expression? "(1 + 2) * -3 / (4 - 5)")))
 
 ;;; TODO: Add tests for function-call, since we're compiling that in now
+
+(define-test parameter
+  (assert-equalp (vertigo::make-param :type :input
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "INPUT foo"))
+  (assert-equalp (vertigo::make-param :type :input
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "input foo"))
+  (assert-equalp (vertigo::make-param :type :input
+                                      :val (vertigo::make-op-node
+                                            :op "+"
+                                            :lhs (vertigo::make-int-value :val 1)
+                                            :rhs (vertigo::make-int-value :val 2)))
+                 (parse #'vertigo::param-spec? "INPUT 1 + 2"))
+  (assert-equalp (vertigo::make-param :type :output
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "OUTPUT foo"))
+  (assert-equalp (vertigo::make-param :type :output
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "output foo"))
+  (assert-equalp (vertigo::make-param :type :output
+                                      :val (vertigo::make-op-node
+                                            :op "+"
+                                            :lhs (vertigo::make-int-value :val 1)
+                                            :rhs (vertigo::make-int-value :val 2)))
+                 (parse #'vertigo::param-spec? "output 1 + 2"))
+  (assert-equalp (vertigo::make-param :type :input-output
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "INPUT-OUTPUT foo"))
+  (assert-equalp (vertigo::make-param :type :input-output
+                                      :val (vertigo::make-op-node
+                                            :op "+"
+                                            :lhs (vertigo::make-int-value :val 1)
+                                            :rhs (vertigo::make-int-value :val 2)))
+                 (parse #'vertigo::param-spec? "INPUT-output 1 + 2"))
+  (assert-equalp (vertigo::make-param :type :input-output
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "input-output foo")))
+
+(define-test default-parameter
+  (assert-equalp (vertigo::make-param :type :input
+                                      :val (vertigo::make-ident :name "foo"))
+                 (parse #'vertigo::param-spec? "foo"))
+  (assert-equalp (vertigo::make-param :type :input
+                                      :val (vertigo::make-op-node
+                                            :op "+"
+                                            :lhs (vertigo::make-int-value :val 1)
+                                            :rhs (vertigo::make-int-value :val 2)))
+                 (parse #'vertigo::param-spec? "1 + 2")))
+
+(define-test empty-parameter-list
+  (let ((empty-plist (vertigo::make-param-list :params '())))
+    (assert-equalp empty-plist
+                   (parse #'vertigo::param-list? "()"))
+    (assert-equalp empty-plist
+                   (parse #'vertigo::param-list? "(  )"))))
+
+(define-test single-parameter-list
+  (let ((single-plist (vertigo::make-param-list
+                       :params (list (vertigo::make-param
+                                      :type :input
+                                      :val (vertigo::make-ident :name "foo"))))))
+    (assert-equalp single-plist
+                   (parse #'vertigo::param-list? "(INPUT foo)"))
+    (assert-equalp single-plist
+                   (parse #'vertigo::param-list? "( INPUT foo )"))))
+
+(define-test multi-parameter-list
+  (let ((multi-plist (vertigo::make-param-list
+                      :params
+                      (list (vertigo::make-param :type :input-output
+                                                 :val (vertigo::make-ident :name "foo"))
+                            (vertigo::make-param :type :input
+                                                 :val (vertigo::make-ident :name "bar"))
+                            (vertigo::make-param :type :output
+                                                 :val (vertigo::make-ident :name "baz"))))))
+    (assert-equalp multi-plist
+                   (parse #'vertigo::param-list? "(INPUT-OUTPUT foo, bar, OUTPUT baz)"))
+    (assert-equalp multi-plist
+                   (parse #'vertigo::param-list? "( INPUT-OUTPUT foo, bar , OUTPUT baz)"))))
+
+(define-test empty-funcall
+  (let ((foo-call (vertigo::make-call :func (vertigo::make-ident :name "Foo")
+                                      :params '()
+                                      :type :function)))
+    (assert-equalp foo-call
+                   (parse #'vertigo::function-call? "Foo()"))
+    (assert-equalp foo-call
+                   (parse #'vertigo::function-call? "Foo ()"))))
+
+(define-test non-empty-funcall
+  (let* ((params (list (vertigo::make-param :type :output
+                                            :val (vertigo::make-ident :name "bar"))
+                       (vertigo::make-param :type :input
+                                            :val (vertigo::make-ident :name "baz"))))
+         (call (vertigo::make-call :func (vertigo::make-ident :name "Foo")
+                                   :params params
+                                   :type :function)))
+    (assert-equalp call
+                   (parse #'vertigo::function-call? "Foo(OUTPUT bar, baz)"))
+    (assert-equalp call
+                   (parse #'vertigo::function-call? "Foo (OUTPUT bar, baz)"))))

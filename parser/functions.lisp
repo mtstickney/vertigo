@@ -1,44 +1,55 @@
 (in-package :vertigo)
 
-(meta-sexp:defrule param-spec? (&aux match) ()
-  (:or (:and (:icase "input")
-             (:rule whitespace?)
-             (:rule value-expression?))
-       (:and (:or (:icase "output")
-                  (:icase "input-output"))
-             (:rule whitespace?)
-             (:rule place?))))
+(meta-sexp:defrule param-spec? (&aux match type expr) ()
+  (:? (:assign type (:or (:icase "input-output")
+                         (:icase "input")
+                         (:icase "output")))
+      (:not (:type identifier-char)))
+  (:assign type (if type (intern (string-upcase type) :keyword) :input))
+  (:? (:rule whitespace?))
+  (:assign expr (:rule expression?))
 
-(meta-sexp:defrule param-list? (&aux match) ()
+  (:return (vertigo::make-param :type type :val expr)))
+
+(meta-sexp:defrule thingy () ()
+  (:delimited* #\,
+               "a"))
+(meta-sexp:defrule param-list? (&aux match param (list (meta-sexp:make-list-accum))) ()
   (:with-stored-match (match)
       "("
     (:? (:rule whitespace?))
 
     ;; Parameters
-    (:delimited #\,
-                (:? (:rule whitespace?))
-                (:? (:rule param-spec?))
-                (:? (:rule whitespace?)))
+    (:? (:delimited* #\,
+                     (:? (:rule whitespace?))
+                     (:assign param (:rule param-spec?))
+                     (:list-push param list)
+                     (:? (:rule whitespace?))))
+    (:? (:rule whitespace?))
     ")")
-
-  (:return match))
+  (:return (vertigo::make-param-list :params (nreverse list))))
 
 ;;; Custom function call rule, for user-defined and builtin functions.
 ;;; May not be a bit overly permissive of arg specs.
-(meta-sexp:defrule function-call? (&aux match) ()
+(meta-sexp:defrule function-call? (&aux match func params) ()
   (:with-stored-match (match)
-    (:rule identifier?)
+    (:assign func (:rule identifier?))
     (:? (:rule whitespace?))
-    (:rule param-list?)))
+    (:assign params (:rule param-list?)))
+  (:return (vertigo::make-call :type :function
+                               :func func
+                               :params (param-list-params params))))
 
-(meta-sexp:defrule procedure-call? (&aux match) ()
-  (:with-stored-match (match)
-    (:? (:rule whitespace?))
-    (:or (:and (:icase "value(")
-               (:rule value-expression?)
-               ")")
-         (:rule function-call?)))
-  (:return match))
+;;; NOTE: procedure calls aren't a simple extension of funcalls (there
+;;; can be options between the procedure ident and the parameter list
+;; (meta-sexp:defrule procedure-call? (&aux match) ()
+;;   (:with-stored-match (match)
+;;     (:? (:rule whitespace?))
+;;     (:or (:and (:icase "value(")
+;;                (:rule value-expression?)
+;;                ")")
+;;          (:rule function-call?)))
+;;   (:return match))
 
 ;;; ABSOLUTE function
 ;; Form no. 1

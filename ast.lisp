@@ -52,3 +52,15 @@
 (defstruct unary-op-node
   (op)
   (val))
+
+(defstruct param
+  (type :input)
+  (val))
+
+(defstruct param-list
+  (params))
+
+(defstruct call
+  (type)
+  (func)
+  (params))
