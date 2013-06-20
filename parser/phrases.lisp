@@ -975,9 +975,9 @@
 ;;; Widget phrase
 ;; Form no. 1
 (meta-sexp:defrule rule3605? () ()
-  (:or (:and "FRAME" (:rule rule3595?))
-   (:and (:? "FIELD") (:rule rule3596?)
-    (:? (:and "IN" "FRAME" (:rule rule3597?))))
+  (:or (:and "FRAME" (:rule identifier?))
+       (:and (:? "FIELD") (:rule identifier?)
+             (:? (:and "IN" "FRAME" (:rule rule3597?))))
    (:and (:rule rule3598?) (:? (:and "IN" "BROWSE" (:rule rule3599?))))
    (:and (:or "MENU" "SUB-MENU") (:rule rule3600?))
    (:and "MENU-ITEM" (:rule rule3601?)
