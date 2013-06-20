@@ -34,8 +34,8 @@
 
 (defstruct string-value
   (str)
-  (justify)
-  (translatable)
+  (justify :none)
+  (translatable t)
   (reserved))
 
 (defstruct boolean-value

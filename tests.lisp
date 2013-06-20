@@ -291,9 +291,7 @@
     (assert-equalp (vertigo::make-datetime-value :date date-value
                                                  :time time-value)
                    (parse #'vertigo::literal? "903-874-846T01:23:45.0678+55:66"))
-    (assert-equalp (vertigo::make-string-value :str "874-846-903   01:23:45.0678+55:66"
-                                               :justify :none
-                                               :translatable t)
+    (assert-equalp (vertigo::make-string-value :str "874-846-903   01:23:45.0678+55:66")
                    (parse #'vertigo::literal? "\"874-846-903   01:23:45.0678+55:66\""))
     (assert-equalp (vertigo::make-date-value :month 10
                                              :day 3
