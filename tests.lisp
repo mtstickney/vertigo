@@ -700,3 +700,25 @@ PAUSE bar"))
                                                 :lhs (vertigo::make-ident :name "foo")
                                                 :rhs (vertigo::make-ident :name "bar"))))
                  (parse #'vertigo::validate-statement? "validate foo::bar")))
+
+(define-test using-statement
+  (assert-equalp (vertigo::make-statement
+                  :type :using
+                  :data (vertigo::dict :namespace '(:absolute "foo" "bar" "baz")))
+                 (parse #'vertigo::using-statement? "USING foo.bar.baz"))
+  (assert-equalp (vertigo::make-statement
+                  :type :using
+                  :data (vertigo::dict :namespace '(:wild "foo" "bar" "baz")))
+                 (parse #'vertigo::using-statement? "using foo.bar.baz.*")))
+
+(define-test use-statement
+  (let ((result (vertigo::make-statement
+                 :type :use
+                 :data (vertigo::dict :env (vertigo::make-op-node
+                                            :op "::"
+                                            :lhs (vertigo::make-ident :name "foo")
+                                            :rhs (vertigo::make-ident :name "bar"))))))
+    (assert-equalp result
+                   (parse #'vertigo::use-statement? "USE foo::bar"))
+    (assert-equalp result
+                   (parse #'vertigo::use-statement? "use foo::bar"))))
