@@ -576,3 +576,77 @@
                               (vertigo::make-string-value :str "bar")
                               (vertigo::make-ident :name "baz")))
                  (parse #'vertigo::event-list? "foo,\"bar\"  baz")))
+
+;;; Widget-phrase
+(define-test frame-widget-phrase
+  (assert-equalp (vertigo::make-widget
+                  :type :frame
+                  :widget (vertigo::make-op-node
+                           :op "::"
+                           :lhs (vertigo::make-ident :name "foo")
+                           :rhs (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::widget-phrase? "FRAME foo::bar")))
+
+(define-test column-widget-phrase
+  (let ((expr (vertigo::make-op-node
+               :op "::"
+               :lhs (vertigo::make-ident :name "foo")
+               :rhs (vertigo::make-ident :name "bar"))))
+    (assert-equalp expr
+                   (parse #'vertigo::widget-phrase? "foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :browse-column
+                    :widget expr
+                    :parent expr)
+                   (parse #'vertigo::widget-phrase? "foo::bar IN BROWSE foo::bar"))))
+
+(define-test menu-widget-phrase
+  (let ((expr (vertigo::make-op-node
+               :op "::"
+               :lhs (vertigo::make-ident :name "foo")
+               :rhs (vertigo::make-ident :name "bar"))))
+    (assert-equalp (vertigo::make-widget
+                    :type :menu
+                    :widget expr)
+                   (parse #'vertigo::widget-phrase? "MENU foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :menu
+                    :widget expr)
+                   (parse #'vertigo::widget-phrase? "SUB-MENU foo::bar"))))
+
+(define-test menu-item-widget-phrase
+  (let ((expr (vertigo::make-op-node
+               :op "::"
+               :lhs (vertigo::make-ident :name "foo")
+               :rhs (vertigo::make-ident :name "bar"))))
+    (assert-equalp (vertigo::make-widget
+                    :type :menu-item
+                    :widget expr)
+                   (parse #'vertigo::widget-phrase? "MENU-ITEM foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :menu-item
+                    :widget expr
+                    :parent expr)
+                   (parse #'vertigo::widget-phrase? "MENU-ITEM foo::bar IN MENU foo::bar"))))
+
+(define-test field-or-handle-widget-phrase
+  (let ((expr (vertigo::make-op-node
+               :op "::"
+               :lhs (vertigo::make-ident :name "foo")
+               :rhs (vertigo::make-ident :name "bar"))))
+    (assert-equalp expr
+                   (parse #'vertigo::widget-phrase? "foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :field-level
+                    :widget expr)
+                   (parse #'vertigo::widget-phrase? "FIELD foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :field-level
+                    :widget expr
+                    :parent expr)
+                   (parse #'vertigo::widget-phrase? "foo::bar IN FRAME foo::bar"))
+    (assert-equalp (vertigo::make-widget
+                    :type :field-level
+                    :widget expr
+                    :parent expr)
+                   (parse #'vertigo::widget-phrase? "FIELD foo::bar IN FRAME foo::bar"))))
