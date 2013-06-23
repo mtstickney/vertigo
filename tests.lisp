@@ -650,3 +650,22 @@
                     :widget expr
                     :parent expr)
                    (parse #'vertigo::widget-phrase? "FIELD foo::bar IN FRAME foo::bar"))))
+
+(define-test wait-for-web-notify
+  (assert-equalp (vertigo::make-statement
+                  :type :wait-for-web-notify)
+                 (parse #'vertigo::wait-for-statement? "WAIT-FOR web-notify OF DEFAULT-WINDOW"))
+  (assert-equalp (vertigo::make-statement
+                  :type :wait-for-web-notify
+                  :data (vertigo::dict))
+                 (parse #'vertigo::wait-for-statement? "WAIT-FOR \"WEB-NOTIFY\" OF DEFAULT-WINDOW
+PAUSE bar"))
+  (assert-equalp (vertigo::make-statement
+                  :type :wait-for-web-notify
+                  :data (vertigo::dict :exclusive-web-user t))
+                 (parse #'vertigo::wait-for-statement? "WAIT-FOR WEB-NOTIFY OF DEFAULT-WINDOW EXCLUSIVE-WEB-USER"))
+  (assert-equalp (vertigo::make-statement
+                  :type :wait-for-web-notify
+                  :data (vertigo::dict :pause (vertigo::make-ident :name "bar")
+                                       :exclusive-web-user t))
+                 (parse #'vertigo::wait-for-statement? "wait-for WEB-notify of default-window pause bar exclusive-web-user")))
