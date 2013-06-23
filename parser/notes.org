@@ -112,8 +112,18 @@
    | MATCHES  | Character/Longchar    | Character        | Logical     |                                                                                                                                                            |
    | MODULO   | Integer/Decimal (LHS) | Integer (RHS)    | Integer     | LHS is rounded if Decimal; base is positive integer; LHS must also be > 0, apparently                                                                      |
 
-
 * Preprocessor
 ** Scoped defines
    &SCOPED-DEFINE'd stuff is still in scope inside includes, unless
    overridden by a passed param.
+
+* meta-sexp
+** Checkpointing
+   - :or is not checkpointed
+   - :and is not checkpointed
+   - a :? with multiple components needs to be checkpointed
+   - a :rule is checkpointed, unless there was a partial optional
+     success
+     - e.g. with (defrule foo (:? "a" "b")), (:rule foo) will consume
+       an "a" for the input "ac"
+   - :not never consumes input
