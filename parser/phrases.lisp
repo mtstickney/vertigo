@@ -19,20 +19,44 @@
 )
 
 ;;; AT phrase
+(meta-sexp:defrule at-phrase? () ()
+  (:or (:rule at-rect?)
+       (:rule at-position?)))
+
 ;; Form no. 1
-(meta-sexp:defrule rule3406? () ()
-  (:and "AT" (:rule rule3405?)))
-
-;; n
-(meta-sexp:defrule rule3405? () ()
-)
-
+(meta-sexp:defrule at-position? (&aux n) ()
+  (:and (:icase "AT") (:rule whitespace?) (:assign n (:rule expression?)))
+  (:return n))
 
 ;; Form no. 2
-(meta-sexp:defrule rule3411? () ()
-  (:and "AT" (:or (:and "X" (:rule rule3407?)) (:and "X-OF" (:rule rule3408?)))
-   (:or (:and "Y" (:rule rule3409?)) (:and "Y-OF" (:rule rule3410?)))
-   (:? (:or "COLON-ALIGNED" "LEFT-ALIGNED" "RIGHT-ALIGNED"))))
+(meta-sexp:defrule at-rect? (&aux opt (opts (dict))) ()
+  (:icase "AT")
+  (:rule whitespace?)
+  (:or (:checkpoint (:icase "X")
+                    (:rule whitespace?)
+                    (:assign opt (:rule expression?))
+                    (:or (setf (gethash :x opts) opt) t))
+       (:checkpoint (:icase "X-OF")
+                    (:rule whitespace?)
+                    (:assign opt (:rule expression?))
+                    (:or (setf (gethash :x-of opts) opt) t)))
+  (:rule whitespace?)
+  (:or (:checkpoint (:icase "Y")
+                    (:rule whitespace?)
+                    (:assign opt (:rule expression?))
+                    (:or (setf (gethash :y opts) opt) t))
+       (:checkpoint (:icase "Y-OF")
+                    (:rule whitespace?)
+                    (:assign opt (:rule expression?))
+                    (:or (setf (gethash :y-of opts) opt) t)))
+  (:? (:checkpoint (:rule whitespace?)
+                   (:or (:and (:icase "COLON-ALIGNED")
+                              (:or (setf (gethash :align opts) :colon) t))
+                        (:and (:icase "LEFT-ALIGNED")
+                              (:or (setf (gethash :align opts) :left) t))
+                        (:and (:icase "RIGHT-ALIGNED")
+                              (:or (setf (gethash :align opts) :right) t)))))
+  (:return opts))
 
 ;; x
 (meta-sexp:defrule rule3407? () ()
