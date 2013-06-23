@@ -687,3 +687,16 @@ PAUSE bar"))
                                                 :widget (vertigo::make-ident :name "foo"))
                                        :window (vertigo::make-ident :name "bar")))
                  (parse #'vertigo::view-statement? "view FIELD foo IN window bar")))
+
+(define-test validate-statement
+  (assert-equalp (vertigo::make-statement
+                  :type :validate
+                  :data (vertigo::dict :record (vertigo::make-ident :name "foo")))
+                 (parse #'vertigo::validate-statement? "VALIDATE foo"))
+  (assert-equalp (vertigo::make-statement
+                  :type :validate
+                  :data (vertigo::dict :record (vertigo::make-op-node
+                                                :op "::"
+                                                :lhs (vertigo::make-ident :name "foo")
+                                                :rhs (vertigo::make-ident :name "bar"))))
+                 (parse #'vertigo::validate-statement? "validate foo::bar")))
