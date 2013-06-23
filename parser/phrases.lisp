@@ -1,3 +1,4 @@
+(in-package :vertigo)
 
 ;;; Aggregate phrase
 ;; Form no. 1
