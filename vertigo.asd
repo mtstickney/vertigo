@@ -7,6 +7,7 @@
   :license "Specify license here"
   :depends-on (#:meta-sexp #:lisp-unit)
   :components ((:file "package")
+               (:file "util")
                (:file "parser")
                (:file "ast")
                (:file "parser/other")

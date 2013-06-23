@@ -1,15 +1,8 @@
 (in-package #:vertigo)
 
-;; TODO: this should go in a global utils file
-(defun join-list (list delimiter)
-  (loop for x on list
-     collect (car x)
-     if (cdr x)
-     collect delimiter))
-
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited)) &optional args)
   (let ((delimiter (first args)))
-    (meta-sexp:transform-grammar ret ctx t :checkpoint (join-list (cdr args) delimiter))))
+    (meta-sexp:transform-grammar ret ctx t :checkpoint (join-list delimiter (cdr args)))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited*)) &optional args)
   (let ((delimiter (first args))
