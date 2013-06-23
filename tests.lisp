@@ -303,12 +303,19 @@
                    (parse #'vertigo::literal? "123"))))
 
 (define-test identifier
-  (assert-equalp (vertigo::make-ident :name "_fo0-bar987_!")
-                 (parse #'vertigo::identifier? "_fo0-bar987_!"))
-  (assert-equalp (vertigo::make-ident :name "04Foo")
-                 (parse #'vertigo::identifier? "04Foo"))
+  ;; Note: Native ABL require the first character to be
+  ;; alphabetic. Should we have the same restriction? Starting with a
+  ;; number is a bit problematic re. literals...
+  ;; (assert-equalp (vertigo::make-ident :name "_fo0-bar987_!")
+  ;;                (parse #'vertigo::identifier? "_fo0-bar987_!"))
+  ;; (assert-equalp (vertigo::make-ident :name "04Foo")
+  ;;                (parse #'vertigo::identifier? "04Foo"))
   (assert-equalp (vertigo::make-ident :name "foo-")
-                (parse #'vertigo::identifier? "foo-")))
+                 (parse #'vertigo::identifier? "foo-"))
+  (assert-equalp (vertigo::make-ident :name "fo04of")
+                 (parse #'vertigo::identifier? "fo04of"))
+  (assert-equalp (vertigo::make-ident :name "fo0-bar987_!")
+                 (parse #'vertigo::identifier? "fo0-bar987_!")))
 
 (define-test buffer-field
   (assert-equalp (vertigo::make-op-node :op "."
