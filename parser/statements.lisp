@@ -1,25 +1,64 @@
 (in-package :vertigo)
 
 ;;; WAIT-FOR statement
+(meta-sexp:defrule wait-for-statement? () ()
+  (:or (:rule wait-for-web-notify?)
+       ;;(:rule wait-for?)
+       ))
+
 ;; Form no. 1
-(meta-sexp:defrule rule2171? () ()
+(meta-sexp:defrule wait-for-web-notify? (&aux pause exclusive) ()
   (:delimited (:rule whitespace?)
-              (:icase "WAIT-FOR") (:? "\"") (:icase "WEB-NOTIFY") (:? "\"")
-              (:icase "OF") (:icase "DEFAULT-WINDOW")
-              (:? (:checkpoint (:and (:icase "PAUSE")
-                                     (:? (:rule whitespace?))
-                                     (:rule expression?))))
-              (:? (:icase "EXCLUSIVE-WEB-USER"))))
+              (:icase "WAIT-FOR")
+              (:or (:icase "\"WEB-NOTIFY\"")
+                   (:icase "WEB-NOTIFY"))
+              (:icase "OF") (:icase "DEFAULT-WINDOW"))
+
+  ;; options can (probably) appear in any order
+  (:? (:checkpoint (:rule whitespace?)
+                   (:icase "PAUSE")
+                   (:rule whitespace?)
+                   (:assign pause (:rule expression?))))
+  (:? (:checkpoint (:rule whitespace?)
+                   (:icase "EXCLUSIVE-WEB-USER")
+                   (:assign exclusive t)))
+  (:return (let ((args '()))
+             (when pause
+               (push pause args)
+               (push :pause args))
+             (when exclusive
+               (push exclusive args)
+               (push :exclusive-web-user args))
+             (make-statement :type :wait-for-web-notify
+                             :data (apply #'dict args)))))
 
 ;; Form no. 2
-(meta-sexp:defrule rule2178? () ()
+(meta-sexp:defrule rule2178? (&aux (event-lists (meta-sexp:make-list-accum))
+                                   (widget-lists (meta-sexp:make-list-accum))
+                                   evt-list
+                                   widg-list
+                                   focus
+                                   pause) ()
   (:delimited (:rule whitespace?)
-              (:icase "WAIT-FOR") (:rule event-list?)
-              (:icase "OF") (:rule rule2173?)
-              (:* (:checkpoint (:icase "OR") (:rule event-list?)
-                               (:icase "OF") (:rule rule2173?)))
-              (:? (:icase "FOCUS") (:rule rule2176?))
-   (:? (:and "PAUSE" (:rule expression?)))))
+              (:icase "WAIT-FOR")
+              (:assign evt-list (:rule event-list?))
+              (:list-push (list-box-list evt-list) event-lists)
+              (:icase "OF")
+              (:assign widg-list (:rule widget-list?))
+              (:list-push (list-box-list widg-list) widget-lists)
+              (:* (:checkpoint
+                   (:delimited (:rule whitespace?)
+                               (:icase "OR")
+                               (:and (:assign evt-list (:rule event-list?))
+                                     (:list-push (list-box-list evt-list) event-lists))
+                               (:icase "OF")
+                               (:and (:assign widg-list (:rule widget-list?))
+                                     (:list-push (list-box-list widg-list) widget-lists))))))
+  (:? (:checkpoint (:rule whitespace?)
+                   (:icase "FOCUS")
+                   (:assign focus (:rule widget-phrase?))))
+  (:? (:checkpoint (:icase "PAUSE")
+                   (:assign pause (:rule expression?)))))
 
 (meta-sexp:defrule event? (&aux match) ()
   (:or (:rule string-literal?)
@@ -27,17 +66,29 @@
 
 ;; event-list
 (meta-sexp:defrule event-list? (&aux event (list (meta-sexp:make-list-accum))) ()
-  (:delimited* (:and (:? (:rule whitespace?))
-                     (:? #\,)
-                     (:? (:rule whitespace?)))
-               (:not (:icase "OF"))
+  ;; This checkpointing this appears to work, but I'm really not solid
+  ;; on why.
+  (:delimited* (:checkpoint (:or (:rule whitespace?)
+                                 (:and (:? (:rule whitespace?))
+                                        #\,
+                                        (:? (:rule whitespace?))))
+                            (:not (:icase "OF")))
                (:assign event (:rule event?))
                (:list-push event list))
   (:return (make-list-box :list (nreverse list))))
 
 ;; widget-list
-(meta-sexp:defrule rule2173? () ()
-)
+(meta-sexp:defrule widget-list? (&aux widg (list (meta-sexp:make-list-accum))) ()
+  (:delimited* (:checkpoint (:or (:rule whitespace?)
+                                 (:and (:? (:rule whitespace?))
+                                       #\,
+                                       (:? (:rule whitespace?))))
+                            (:not (:or (:icase "OR")
+                                       (:icase "FOCUS")
+                                       (:icase "PAUSE"))))
+               (:assign widg (:rule widget-phrase?))
+               (:list-push widg list))
+  (:return (make-list-box :list (nreverse list))))
 
 ;; widget
 (meta-sexp:defrule rule2176? () ()
