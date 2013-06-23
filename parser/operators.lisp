@@ -305,20 +305,21 @@
 (meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
   (:assign lhs (:rule unary-value?))
   (:*
-   (:? (:rule whitespace?))
    ;; While lookahead token is a binary op with binding power >= BIND-POWER
    (:checkpoint
+    (:? (:rule whitespace?))
     (:assign op (:rule operator?))
-    (>= (right-binding-power op 2) bind-power))
-   (:? (:rule whitespace?))
-   (let* ((rbp (right-binding-power op 2))
-          (rest-rbp (if (eq (op-associativity op) :left)
-                        (1+ rbp)
-                        rbp))
-          (rhs (meta-sexp:meta (:rule expression? rest-rbp))))
-     (meta-sexp:meta
-      (:and rhs
-            (setf lhs (make-op-node :op op :lhs lhs :rhs rhs))))))
+    (>= (right-binding-power op 2) bind-power)
+
+    (:? (:rule whitespace?))
+    (let* ((rbp (right-binding-power op 2))
+           (rest-rbp (if (eq (op-associativity op) :left)
+                         (1+ rbp)
+                         rbp))
+           (rhs (meta-sexp:meta (:rule expression? rest-rbp))))
+      (meta-sexp:meta
+       (:and rhs
+             (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
   (:return  lhs))
 
 ;;; + Unary positive operator
