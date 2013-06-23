@@ -64,3 +64,8 @@
   (type)
   (func)
   (params))
+
+(defstruct widget
+  (type)
+  (widget)
+  (parent))
