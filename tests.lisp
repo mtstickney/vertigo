@@ -722,3 +722,21 @@ PAUSE bar"))
                    (parse #'vertigo::use-statement? "USE foo::bar"))
     (assert-equalp result
                    (parse #'vertigo::use-statement? "use foo::bar"))))
+
+(define-test at-location-phrase
+  (assert-equalp (vertigo::make-int-value :val 3)
+                 (parse #'vertigo::at-phrase? "AT 3"))
+  (assert-equalp (vertigo::make-int-value :val 3)
+                 (parse #'vertigo::at-phrase? "at 3")))
+
+(define-test at-rect-phrase
+  (let ((x (vertigo::make-int-value :val 1))
+        (y (vertigo::make-int-value :val 3)))
+    (assert-equalp (vertigo::dict :x x :y y)
+                   (parse #'vertigo::at-phrase? "AT X 1 Y 3"))
+    (assert-equalp (vertigo::dict :x x :y-of y)
+                   (parse #'vertigo::at-phrase? "at x 1 y-of 3"))
+    (assert-equalp (vertigo::dict :x-of x :y y)
+                   (parse #'vertigo::at-phrase? "AT X-OF 1 y 3"))
+    (assert-equalp (vertigo::dict :x-of x :y-of y)
+                   (parse #'vertigo::at-phrase? "at x-of 1 Y-OF 3"))))
