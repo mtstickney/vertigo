@@ -12,6 +12,7 @@
                (:file "parser/other")
                (:file "parser/functions")
                (:file "parser/operators")
+               (:file "parser/phrases")
                (:file "parser/statements")
                (:file "tests")))
 
