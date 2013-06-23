@@ -127,3 +127,9 @@
      - e.g. with (defrule foo (:? "a" "b")), (:rule foo) will consume
        an "a" for the input "ac"
    - :not never consumes input
+* statements
+** NO-ERROR
+   - Any statement may have a NO-ERROR clause, which will suppress
+     any errors in that statement. Note true for native ABL, but it
+     doesn't hurt to be more general.
+   - Handled in top-level statement parser, not on a per-statement basis.
