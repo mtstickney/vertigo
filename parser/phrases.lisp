@@ -974,52 +974,68 @@
 
 ;;; Widget phrase
 ;; Form no. 1
-(meta-sexp:defrule rule3605? () ()
-  (:or (:and "FRAME" (:rule identifier?))
-       (:and (:? "FIELD") (:rule identifier?)
-             (:? (:and "IN" "FRAME" (:rule rule3597?))))
-   (:and (:rule rule3598?) (:? (:and "IN" "BROWSE" (:rule rule3599?))))
-   (:and (:or "MENU" "SUB-MENU") (:rule rule3600?))
-   (:and "MENU-ITEM" (:rule rule3601?)
-    (:? (:and "IN" "MENU" (:rule rule3602?))))
-   (:rule rule3603?) (:rule rule3604?)))
+(meta-sexp:defrule widget-phrase? (&aux item parent) ()
+  ;; HANDLE and SYSTEM-HANDLE forms are taken care of by FIELD-WIDGET
+  (:or (:rule frame-widget?)
+       (:rule column-widget?)
+       (:rule menu-widget?)
+       (:rule menu-item-widget?)
+       (:rule field-widget?)
+       (:rule expression?)))
+
 
 ;; frame
-(meta-sexp:defrule rule3595? () ()
-)
+(meta-sexp:defrule frame-widget? (&aux item) ()
+  (:delimited (:rule whitespace?)
+              (:icase "FRAME")
+              (:assign item (:rule expression?)))
+  (:return (make-widget :type :frame
+                        :widget item)))
 
 ;; field
-(meta-sexp:defrule rule3596? () ()
-)
-
-;; frame
-(meta-sexp:defrule rule3597? () ()
-)
+(meta-sexp:defrule field-widget? (&aux item parent) ()
+  ;; Need either leading FIELD, "IN FRAME" tail, or both
+  (:or (:checkpoint
+        (:? (:icase "FIELD")
+            (:rule whitespace?))
+        (:delimited (:rule whitespace?)
+                    (:assign item (:rule expression?))
+                    (:icase "IN") (:icase "FRAME")
+                    (:assign parent (:rule expression?))))
+       (:delimited (:rule whitespace?)
+                   (:icase "FIELD")
+                   (:assign item (:rule expression?))))
+  (:return (make-widget :type :field-level
+                        :widget item
+                        :parent parent)))
 
 ;; column
-(meta-sexp:defrule rule3598? () ()
-)
-
-;; browse
-(meta-sexp:defrule rule3599? () ()
-)
+(meta-sexp:defrule column-widget? (&aux item parent) ()
+  (:delimited (:? (:rule whitespace?))
+              (:assign item (:rule expression?))
+              (:delimited (:rule whitespace?)
+                          (:icase "IN") (:icase "BROWSE")
+                          (:assign parent (:rule expression?))))
+  (:return (make-widget :type :browse-column
+                        :widget item
+                        :parent parent)))
 
 ;; menu
-(meta-sexp:defrule rule3600? () ()
-)
+(meta-sexp:defrule menu-widget? (&aux item) ()
+  (:delimited (:rule whitespace?)
+              (:or (:icase "MENU") (:icase "SUB-MENU"))
+              (:assign item (:rule expression?)))
+  (:return (make-widget :type :menu
+                        :widget item)))
 
 ;; menu-item
-(meta-sexp:defrule rule3601? () ()
-)
-
-;; menu
-(meta-sexp:defrule rule3602? () ()
-)
-
-;; handle
-(meta-sexp:defrule rule3603? () ()
-)
-
-;; system-handle
-(meta-sexp:defrule rule3604? () ()
-)
+(meta-sexp:defrule menu-item-widget? (&aux item parent) ()
+  (:delimited (:? (:rule whitespace?))
+              (:icase "MENU-ITEM")
+              (:assign item (:rule expression?))
+              (:? (:checkpoint (:delimited (:rule whitespace?)
+                                           (:icase "IN") (:icase "MENU")
+                                           (:assign parent (:rule expression?))))))
+  (:return (make-widget :type :menu-item
+                        :widget item
+                        :parent parent)))
