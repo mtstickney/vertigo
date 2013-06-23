@@ -283,11 +283,11 @@
 
 (meta-sexp:defrule operator? (&aux match) ()
   (:with-stored-match (match)
-    (:or ":"
-         "::"
+    ;; It's important that ops that are prefixes of other ops come afterwards
+    (:or "::"
+         ":"
          "MODULO"
          "/"
-
          "*"
          "+"
          "-"
@@ -295,12 +295,12 @@
          "AND"
          "OR"
          "["
-         "<" "LT"
-         ">" "GT"
+         "<>" "NE"
          "<=" "LE"
          ">=" "GE"
-         "=" "EQ"
-         "<>" "NE")))
+         "<" "LT"
+         ">" "GT"
+         "=" "EQ")))
 
 (meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
   (:assign lhs (:rule unary-value?))

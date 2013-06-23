@@ -1,7 +1,7 @@
 (in-package #:vertigo)
 
 ;; TODO: Not sure about having #\* in here
-(deftype identifier-char () `(or meta-sexp:alnum? (member #\_ #\! #\*)))
+(deftype identifier-char () `(or meta-sexp:alnum? (member #\_ #\! #\* #\-)))
 
 ;;; Identifier rule
 ;;; Note that it is liberal and accepts "invalid" identifiers
@@ -9,9 +9,8 @@
 ;;; rules (e.g. the '-' operator rule)
 (meta-sexp:defrule identifier? (&aux match) ()
   (:with-stored-match (match)
-    (:type identifier-char)
-    (:* (:or (:type identifier-char)
-             #\-)))
+    (:type meta-sexp:alpha?)
+    (:* (:type identifier-char)))
   (:return (make-ident :name match)))
 
 ;;; “ ” Character-string literal
