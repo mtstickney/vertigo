@@ -138,8 +138,23 @@
 
 ;;; USING statement
 ;; Form no. 1
-(meta-sexp:defrule rule2185? () ()
-  "USING")
+(meta-sexp:defrule using-statement? (&aux namespace) ()
+  (:icase "USING")
+  (:rule whitespace?)
+  (:assign namespace (:rule import-namespace?))
+  (:return (vertigo::make-statement
+            :type :using
+            :data (dict :namespace (list-box-list namespace)))))
+
+;; namespace
+(meta-sexp:defrule import-namespace? (&aux wild pkg (components (meta-sexp:make-list-accum))) ()
+  (:delimited* #\.
+               (:assign pkg (:rule identifier?))
+               (:list-push (ident-name pkg) components) t)
+  (:or (:assign wild (:checkpoint #\. #\*))
+       t)
+  (:return (vertigo::make-list-box :list (cons (if wild :wild :absolute)
+                                               (nreverse components)))))
 
 ;;; USE statement
 ;; Form no. 1
