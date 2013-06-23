@@ -353,6 +353,47 @@
   (assert-equalp (vertigo::make-ident :name "foo")
                  (parse #'vertigo::unary-value? "foo")))
 
+(define-test single-binary-op
+  (loop for binop in '(":"
+                       "::"
+                       "MODULO"
+                       "/"
+                       "*"
+                       "+"
+                       "-"
+                       "AND"
+                       "OR"
+                       "<" "LT"
+                       ">" "GT"
+                       "<=" "LE"
+                       ">=" "GE"
+                       "=" "EQ"
+                       "<>" "NE")
+     do (assert-equalp (vertigo::make-op-node
+                        :op binop
+                        :lhs (vertigo::make-ident :name "foo")
+                        :rhs (vertigo::make-ident :name "bar"))
+                       (parse #'vertigo::expression? (format nil "foo ~A bar" binop)))))
+
+(define-test sigle-binary-op-nospace
+  (loop for binop in '(":"
+                       "::"
+                       "/"
+                       "*"
+                       "+"
+                       "-"
+                       "<"
+                       ">"
+                       "<="
+                       ">="
+                       "="
+                       "<>")
+     do (assert-equalp (vertigo::make-op-node
+                        :op binop
+                        :lhs (vertigo::make-ident :name "foo")
+                        :rhs (vertigo::make-ident :name "bar"))
+                       (parse #'vertigo::expression? (format nil "foo ~A bar" binop)))))
+
 (define-test operator-associativity
   (assert-equalp (vertigo::make-op-node
                   :op "-"
