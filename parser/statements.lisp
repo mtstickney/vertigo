@@ -68,10 +68,10 @@
 (meta-sexp:defrule event-list? (&aux event (list (meta-sexp:make-list-accum))) ()
   ;; This checkpointing this appears to work, but I'm really not solid
   ;; on why.
-  (:delimited* (:checkpoint (:or (:rule whitespace?)
-                                 (:and (:? (:rule whitespace?))
-                                        #\,
-                                        (:? (:rule whitespace?))))
+  (:delimited* (:checkpoint (:or (:checkpoint (:? (:rule whitespace?))
+                                              #\,
+                                              (:? (:rule whitespace?)))
+                                 (:rule whitespace?))
                             (:not (:icase "OF")))
                (:assign event (:rule event?))
                (:list-push event list))
@@ -79,10 +79,10 @@
 
 ;; widget-list
 (meta-sexp:defrule widget-list? (&aux widg (list (meta-sexp:make-list-accum))) ()
-  (:delimited* (:checkpoint (:or (:rule whitespace?)
-                                 (:and (:? (:rule whitespace?))
-                                       #\,
-                                       (:? (:rule whitespace?))))
+  (:delimited* (:checkpoint (:or (:checkpoint (:? (:rule whitespace?))
+                                              #\,
+                                              (:? (:rule whitespace?)))
+                                 (:rule whitespace?))
                             (:not (:or (:icase "OR")
                                        (:icase "FOCUS")
                                        (:icase "PAUSE"))))
