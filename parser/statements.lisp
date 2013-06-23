@@ -158,12 +158,13 @@
 
 ;;; USE statement
 ;; Form no. 1
-(meta-sexp:defrule rule2187? () ()
-  (:and "USE" (:rule rule2186?) (:? "NO-ERROR")))
+(meta-sexp:defrule use-statement? (&aux expr) ()
+  (:delimited (:rule whitespace?)
+              (:icase "USE")
+              (:assign expr (:rule expression?)))
+  (:return (make-statement :type :use
+                           :data (dict :env expr))))
 
-;; environment
-(meta-sexp:defrule rule2186? () ()
-)
 
 ;;; UP statement
 ;; Form no. 1
