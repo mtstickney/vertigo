@@ -90,31 +90,41 @@
                (:list-push widg list))
   (:return (make-list-box :list (nreverse list))))
 
-;; widget
-(meta-sexp:defrule rule2176? () ()
-)
-
-;; n
-(meta-sexp:defrule rule2177? () ()
-)
-
 ;;; VIEW statement
 ;; Form no. 1
-(meta-sexp:defrule rule2182? () ()
-  (:and "VIEW" (:? (:and "STREAM" (:rule rule2179?))) (:? (:rule rule2180?))
-   (:? (:and "IN" "WINDOW" (:rule rule2181?)))))
+(meta-sexp:defrule view-statement? (&aux stream widg window (args '())) ()
+  (:icase "VIEW")
+  (:? (:checkpoint
+       (:rule whitespace?)
+       (:delimited (:rule whitespace?)
+                   (:icase "STREAM")
+                   (:assign stream (:rule expression?)))
+       (progn
+         (push stream args)
+         (push :stream args)
+         t)))
+  (:? (:checkpoint
+       (:rule whitespace?)
+       ;; "IN" indicates an in-window option, not an identifier
+       (:not (:icase "IN"))
+       (:assign widg (:rule widget-phrase?))
+       (progn
+         (push widg args)
+         (push :widget args)
+         t)))
+  (:? (:checkpoint
+       (:rule whitespace?)
+       (:delimited (:rule whitespace?)
+                   (:icase "IN")
+                   (:icase "WINDOW")
+                   (:assign window (:rule expression?)))
+       (progn
+         (push window args)
+         (push :window args)
+         t)))
+  (:return (vertigo::make-statement :type :view
+                                    :data (apply #'vertigo::dict args))))
 
-;; stream
-(meta-sexp:defrule rule2179? () ()
-)
-
-;; widget-phrase
-(meta-sexp:defrule rule2180? () ()
-)
-
-;; window
-(meta-sexp:defrule rule2181? () ()
-)
 
 ;;; VALIDATE statement
 ;; Form no. 1
