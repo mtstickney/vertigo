@@ -128,12 +128,13 @@
 
 ;;; VALIDATE statement
 ;; Form no. 1
-(meta-sexp:defrule rule2184? () ()
-  (:and "VALIDATE" (:rule rule2183?) (:? "NO-ERROR")))
+(meta-sexp:defrule validate-statement? (&aux record) ()
+  (:icase "VALIDATE")
+  (:rule whitespace?)
+  (:assign record (:rule expression?))
+  (:return (make-statement :type :validate
+                           :data (dict :record record))))
 
-;; record
-(meta-sexp:defrule rule2183? () ()
-)
 
 ;;; USING statement
 ;; Form no. 1
