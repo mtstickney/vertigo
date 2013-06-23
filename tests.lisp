@@ -669,3 +669,21 @@ PAUSE bar"))
                   :data (vertigo::dict :pause (vertigo::make-ident :name "bar")
                                        :exclusive-web-user t))
                  (parse #'vertigo::wait-for-statement? "wait-for WEB-notify of default-window pause bar exclusive-web-user")))
+
+(define-test view-statement
+  (assert-equalp (vertigo::make-statement
+                  :type :view
+                  :data (vertigo::dict))
+                 (parse #'vertigo::view-statement? "VIEW"))
+  (assert-equalp (vertigo::make-statement
+                  :type :view
+                  :data (vertigo::dict :stream (vertigo::make-ident :name "foo")
+                                       :window (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::view-statement? "view stream foo in window bar"))
+  (assert-equalp (vertigo::make-statement
+                  :type :view
+                  :data (vertigo::dict :widget (vertigo::make-widget
+                                                :type :field-level
+                                                :widget (vertigo::make-ident :name "foo"))
+                                       :window (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::view-statement? "view FIELD foo IN window bar")))
