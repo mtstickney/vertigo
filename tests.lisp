@@ -776,5 +776,10 @@ PAUSE bar"))
                                 :foreground "red/black"
                                 :background "green")
                  (parse #'vertigo::color-phrase? "bright-red/black-green"))
+  (assert-equalp (vertigo::make-op-node
+                  :op "::"
+                  :lhs (vertigo::make-ident :name "foo")
+                  :rhs (vertigo::make-ident :name "bar"))
+                 (parse #'vertigo::color-phrase? "VALUE( foo::bar )"))
   (assert-equalp nil
                  (parse #'vertigo::color-phrase? "")))
