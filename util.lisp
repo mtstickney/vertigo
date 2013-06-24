@@ -13,3 +13,13 @@
      do (error "Even number of arguments required for dict constructor.")
      do (setf (gethash key m) (car rest))
      finally (return m)))
+
+(defun dict->assoc (d)
+  (let ((l '()))
+    (maphash (lambda (k v)
+               (push (cons k v) l))
+             d)
+    l))
+
+(defun stmt->assoc (s)
+  (dict->assoc (statement-data s)))
