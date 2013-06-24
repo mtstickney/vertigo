@@ -482,6 +482,7 @@
                               (:rule whitespace?)
                               (:assign opt (:rule expression?))
                               (:or (setf (gethash :pfcolor opts) opt)) t))
+             (not (equalp opts (dict))))
        (:checkpoint (:icase "COLOR")
                     (:? (:checkpoint (:rule whitespace?)
                                      (:icase "DISPLAY")))
