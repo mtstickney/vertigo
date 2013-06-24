@@ -129,6 +129,10 @@
              (:return :messages))
        (:or (:rule hex-integer?)
             (:rule string-literal?))
+       (:and (:delimited (:? (:rule whitespace?))
+                         (:icase "VALUE")
+                         "(" (:assign word (:rule expression?)) ")")
+             (:return word))
        (:checkpoint (:? (:icase "BLINK-")
                         (:or (setf (gethash :blink opts) t) t))
                     (:? (:icase "BRIGHT-")
@@ -154,9 +158,6 @@
                     ;; Need to have set *something*
                     (not (equalp opts (dict)))
                     (:return opts))
-       (:and (:icase "VALUE")
-             "(" (:assign word (:rule expression?)) ")"
-             (:return word))
        ;; Termcap color identifier
        (:rule exclude-chars? '(meta-sexp:white-space?))))
 
