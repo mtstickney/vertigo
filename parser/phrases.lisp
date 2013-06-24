@@ -481,7 +481,7 @@
                               (:icase "PFCOLOR")
                               (:rule whitespace?)
                               (:assign opt (:rule expression?))
-                              (:or (setf (gethash :pfcolor opts) opt) t))))
+                              (:or (setf (gethash :pfcolor opts) opt)) t))
        (:checkpoint (:icase "COLOR")
                     (:? (:checkpoint (:rule whitespace?)
                                      (:icase "DISPLAY")))
