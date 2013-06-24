@@ -818,3 +818,28 @@ PAUSE bar"))
                                 :y (vertigo::make-int-value :val 3)
                                 :size-type :pixel)
                  (parse #'vertigo::size-phrase? "size-pixels 1 BY 3")))
+
+(define-test title-phrase
+  (assert-equalp (vertigo::dict :title-color (vertigo::make-int-value :val 1)
+                                :font (vertigo::make-ident :name "foo")
+                                :title (vertigo::make-op-node
+                                        :op "::"
+                                        :lhs (vertigo::make-ident :name "foo")
+                                        :rhs (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::title-phrase? "TITLE dcolor 1 FONT foo foo::bar"))
+  (assert-equalp (vertigo::dict :title-color (vertigo::make-int-value :val 1)
+                                :bg-color (vertigo::make-int-value :val 2)
+                                :fg-color (vertigo::make-int-value :val 3)
+                                :font (vertigo::make-ident :name "foo")
+                                :title (vertigo::make-op-node
+                                        :op "::"
+                                        :lhs (vertigo::make-ident :name "foo")
+                                        :rhs (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::title-phrase? "TITLE bgcolor 2 dcolor 1 fgcolor 3 FONT foo foo::bar"))
+  (assert-equalp (vertigo::dict :color (vertigo::make-ident :name "foo")
+                                :font (vertigo::make-ident :name "foo")
+                                :title (vertigo::make-op-node
+                                        :op "::"
+                                        :lhs (vertigo::make-ident :name "foo")
+                                        :rhs (vertigo::make-ident :name "bar")))
+                 (parse #'vertigo::title-phrase? "TITLE color value(foo) FONT foo foo::bar")))
