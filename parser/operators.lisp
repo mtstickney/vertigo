@@ -12,9 +12,10 @@
 ;;                  | add-expression
 
 (meta-sexp:defrule integer? (&aux (digits 0) (result 0) d) ()
-  (:+ (:assign d (:type meta-sexp:digit?))
-      (setf result (+ (* result 10) (digit-char-p d)))
-      (incf digits))
+  (:+ (:checkpoint (:assign d (:type meta-sexp:digit?))
+                   (setf result (+ (* result 10) (digit-char-p d)))
+                   (incf digits)))
+  (:return result digits))
 
 (meta-sexp:defrule hex-integer? (&aux (digits 0) (result 0) char d) ()
   #\0
