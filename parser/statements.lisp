@@ -168,21 +168,21 @@
 
 ;;; UP statement
 ;; Form no. 1
-(meta-sexp:defrule rule2191? () ()
-  (:and "UP" (:? (:and "STREAM" (:rule rule2188?))) (:? (:rule rule2189?))
-   (:? (:rule rule2190?))))
+(meta-sexp:defrule rule2191? (&aux stream amount frame-props) ()
+  (:icase "UP")
+  (:? (:checkpoint (:rule whitespace?)
+                   (:icase "STREAM")
+                   (:rule whitespace?)
+                   (:assign stream (:rule expression?))))
+  (:? (:checkpoint (:rule whitespace?)
+                   (:assign amount (:rule expression?))))
+  (:? (:checkpoint (:rule whitespace?)
+                   (:assign frame-props (:rule frame-phrase?))))
+  (:return (make-statement :type :up
+                           :data (dict :stream stream
+                                       :amount amount
+                                       :frame-opts frame-props))))
 
-;; stream
-(meta-sexp:defrule rule2188? () ()
-)
-
-;; expression
-(meta-sexp:defrule rule2189? () ()
-)
-
-;; frame-phrase
-(meta-sexp:defrule rule2190? () ()
-)
 
 ;;; UNSUBSCRIBE statement
 ;; Form no. 1
