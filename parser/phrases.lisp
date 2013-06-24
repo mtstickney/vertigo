@@ -20,16 +20,16 @@
 
 ;;; AT phrase
 (meta-sexp:defrule at-phrase? () ()
-  (:or (:rule at-rect?)
-       (:rule at-position?)))
+  (:or (:rule at-2d?)
+       (:rule at-linear?)))
 
 ;; Form no. 1
-(meta-sexp:defrule at-position? (&aux n) ()
+(meta-sexp:defrule at-linear? (&aux n) ()
   (:and (:icase "AT") (:rule whitespace?) (:assign n (:rule expression?)))
   (:return n))
 
 ;; Form no. 2
-(meta-sexp:defrule at-rect? (&aux opt (opts (dict))) ()
+(meta-sexp:defrule at-2d? (&aux opt (opts (dict))) ()
   (:icase "AT")
   (:rule whitespace?)
   (:or (:checkpoint (:icase "X")
