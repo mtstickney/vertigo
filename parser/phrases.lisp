@@ -961,9 +961,19 @@
 
 ;;; SIZE phrase
 ;; Form no. 1
-(meta-sexp:defrule rule3568? () ()
-  (:and (:or "SIZE" "SIZE-CHARS" "SIZE-PIXELS") (:rule rule3566?) "BY"
-   (:rule rule3567?)))
+(meta-sexp:defrule size-phrase? (&aux x y (opts (dict))) ()
+  (:delimited (:rule whitespace?)
+              (:or (:and (:icase "SIZE-PIXELS")
+                         (setf (gethash :size-type opts) :pixel))
+                   (:and (:or (:checkpoint (:icase "SIZE-CHARS"))
+                              (:checkpoint (:icase "SIZE")))
+                         (setf (gethash :size-type opts) :character)))
+              (:assign x (:rule expression?))
+              (:icase "BY")
+              (:assign y (:rule expression?)))
+  (setf (gethash :x opts) x
+        (gethash :y opts) y)
+  (:return opts))
 
 ;; width
 (meta-sexp:defrule rule3566? () ()
