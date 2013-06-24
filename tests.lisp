@@ -783,3 +783,25 @@ PAUSE bar"))
                  (parse #'vertigo::color-phrase? "VALUE( foo::bar )"))
   (assert-equalp nil
                  (parse #'vertigo::color-phrase? "")))
+
+(define-test frame-color-spec
+  (let ((expr (vertigo::make-op-node
+                  :op "::"
+                  :lhs (vertigo::make-ident :name "foo")
+                  :rhs (vertigo::make-ident :name "bar"))))
+    (assert-equalp (vertigo::dict :bgcolor expr)
+                   (parse #'vertigo::frame-color-spec? "BGCOLOR foo::bar"))
+    (assert-equalp (vertigo::dict :fgcolor expr)
+                   (parse #'vertigo::frame-color-spec? "FGCOLOR foo::bar"))
+    (assert-equalp (vertigo::dict :dcolor expr)
+                   (parse #'vertigo::frame-color-spec? "DCOLOR foo::bar"))
+    (assert-equalp (vertigo::dict :dcolor expr
+                                  :pfcolor expr)
+                   (parse #'vertigo::frame-color-spec? "DCOLOR foo::bar PFCOLOR foo::bar"))
+    (assert-equalp (vertigo::dict :dcolor 255
+                                  :pfcolor expr)
+                   (parse #'vertigo::frame-color-spec? "COLOR 0xFF PROMPT VALUE( foo::bar )"))
+    (assert-equalp (vertigo::dict :dcolor 255
+                                  :pfcolor expr)
+                   (parse #'vertigo::frame-color-spec? "COLOR DISPLAY 0xFF PROMPT VALUE(foo::bar)")))
+  )
