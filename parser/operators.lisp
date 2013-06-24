@@ -15,11 +15,20 @@
   (:+ (:assign d (:type meta-sexp:digit?))
       (setf result (+ (* result 10) (digit-char-p d)))
       (incf digits))
+
+(meta-sexp:defrule hex-integer? (&aux (digits 0) (result 0) char d) ()
+  #\0
+  (:icase #\x)
+  (:+ (:checkpoint (:assign char (:type character))
+                   (:assign d (digit-char-p char 16))
+                   (setf result (+ (* result 16) d))
+                   (incf digits)))
   (:return result digits))
 
 (meta-sexp:defrule integer-literal? (&aux match (result 0)) ()
   (:with-stored-match (match)
-    (:assign result (:rule integer?)))
+    (:assign result (:or (:rule hex-integer?)
+                         (:rule integer?))))
   (:return (make-int-value :val result)))
 
 (defun digits (n &optional (base 10))
