@@ -132,4 +132,10 @@
    - Any statement may have a NO-ERROR clause, which will suppress
      any errors in that statement. Note true for native ABL, but it
      doesn't hurt to be more general.
-   - Handled in top-level statement parser, not on a per-statement basis.
+   - Handled in top-level statement parser, not on a per-statement
+     basis.
+* Things to do
+  - Write tests + impl for color phrase
+  - Finish impl + add tests for frame phrase's color spec
+  - Keep working on frame phrase
+  - finish whatever statement it was that depended on frame-phrase
