@@ -752,3 +752,29 @@ PAUSE bar"))
                    (parse #'vertigo::at-phrase? "at x-of 1 Y-OF 3 left-aligned"))
     (assert-equalp (vertigo::dict :x x :x-type :x-of :y y :y-type :y-of :align :right)
                    (parse #'vertigo::at-phrase? "at x-of 1 Y-OF 3 right-aligned"))))
+
+(define-test color-phrase
+  (assert-equalp :normal
+                 (parse #'vertigo::color-phrase? "NORMAL"))
+  (assert-equalp :input
+                 (parse #'vertigo::color-phrase? "input"))
+  (assert-equalp :messages
+                 (parse #'vertigo::color-phrase? "MESSAGES"))
+  (assert-equalp 255
+                 (parse #'vertigo::color-phrase? "0xff"))
+  (assert-equalp (vertigo::dict :bright t
+                                :foreground "red/black")
+                 (parse #'vertigo::color-phrase? "bright-red/black"))
+  (assert-equalp (vertigo::dict :blink t
+                                :foreground "red/black")
+                 (parse #'vertigo::color-phrase? "blink-red/black"))
+  (assert-equalp (vertigo::dict :blink t
+                                :bright t
+                                :foreground "red/black")
+                 (parse #'vertigo::color-phrase? "blink-bright-red/black"))
+  (assert-equalp (vertigo::dict :bright t
+                                :foreground "red/black"
+                                :background "green")
+                 (parse #'vertigo::color-phrase? "bright-red/black-green"))
+  (assert-equalp nil
+                 (parse #'vertigo::color-phrase? "")))
