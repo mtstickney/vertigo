@@ -487,10 +487,14 @@
                     (:? (:checkpoint (:rule whitespace?)
                                      (:icase "DISPLAY")))
                     (:rule whitespace?)
-                    
-                    )
-       )
-)
+                    (:assign opt (:rule color-phrase?))
+                    (:or (setf (gethash :dcolor opts) opt) t)
+                    (:? (:checkpoint (:rule whitespace?)
+                                     (:icase "PROMPT")
+                                     (:rule whitespace?)
+                                     (:assign opt (:rule color-phrase?))
+                                     (:or (setf (gethash :pfcolor opts) opt) t)))))
+  (:return opts))
 
 ;; expression
 (meta-sexp:defrule rule3471? () ()
