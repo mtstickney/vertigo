@@ -24,6 +24,10 @@
   (assert-equalp (vertigo::make-int-value :val 123)
                  (parse #'vertigo::integer-literal? "0123")))
 
+(define-test integer-literal-hex
+    (assert-equalp (vertigo::make-int-value :val 255)
+                   (parse #'vertigo::integer-literal? "0xFF")))
+
 ;;; Decimal literal tests
 (define-test decimal-literal-zero-decimal
   (assert-equalp (vertigo::make-rational-value :int 123
