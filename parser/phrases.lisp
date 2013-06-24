@@ -408,7 +408,30 @@
 )
 
 ;; color-specification
-(meta-sexp:defrule rule3470? () ()
+(meta-sexp:defrule frame-color-spec? (&aux opt (opts (dict))) ()
+  (:or (:and (:? (:checkpoint (:icase "BGCOLOR")
+                              (:rule whitespace?)
+                              (:assign opt (:rule expression?))
+                              (:or (setf (gethash :bgcolor dict)))))
+             (:? (:checkpoint (:icase "DCOLOR")
+                              (:rule whitespace?)
+                              (:assign opt (:rule expression?))
+                              (:or (setf (gethash :dcolor opts) opt) t)))
+             (:? (:checkpoint (:icase "FGCOLOR")
+                              (:rule whitespace?)
+                              (:assign opt (:rule expression?))
+                              (:or (setf (gethash :fgcolor opts) opt) t)))
+             (:? (:checkpoint (:icase "PFCOLOR")
+                              (:rule whitespace?)
+                              (:assign opt (:rule expression?))
+                              (:or (setf (gethash :pfcolor opts) opt) t))))
+       (:checkpoint (:icase "COLOR")
+                    (:? (:checkpoint (:rule whitespace?)
+                                     (:icase "DISPLAY")))
+                    (:rule whitespace?)
+                    
+                    )
+       )
 )
 
 ;; expression
