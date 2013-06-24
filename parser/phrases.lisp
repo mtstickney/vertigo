@@ -120,13 +120,58 @@
 
 ;;; COLOR phrase
 ;; Form no. 1
-(meta-sexp:defrule rule3423? () ()
-  (:or "NORMAL" "INPUT" "MESSAGES" (:rule rule3417?) (:rule rule3418?)
-   (:and (:? "BLINK-") (:? "BRIGHT-") (:? (:rule rule3419?))
-    (:? (:rule rule3420?)))
-   (:and (:? "BLINK-") (:? "RVV-") (:? "UNDERLINE-") (:? "BRIGHT-")
-    (:? (:rule rule3421?)))
-   (:and "VALUE" "(" (:rule rule3422?) ")")))
+(meta-sexp:defrule color-phrase? (&aux word (opts (dict))) ()
+  (:or (:and (:icase "NORMAL")
+             (:return :normal))
+       (:and (:icase "INPUT")
+             (:return :input))
+       (:and (:icase "MESSAGES")
+             (:return :messages))
+       (:or (:rule hex-integer?)
+            (:rule string-literal?))
+       (:checkpoint (:? (:icase "BLINK-")
+                        (:or (setf (gethash :blink opts) t) t))
+                    (:? (:icase "BRIGHT-")
+                        (:or (setf (gethash :bright opts) t) t))
+                    (:and (:assign word (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
+                          (:or (setf (gethash :foreground opts) word) t))
+                    (:and #\-
+                          (:assign word (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
+                          (:or (setf (gethash :background opts) word) t))
+                    ;; Need to have set *something*
+                    (not (equalp opts (dict)))
+                    (:return opts))
+       (:checkpoint (:? (:icase "BLINK-")
+                        (:or (setf (gethash :blink opts) t) t))
+                    (:? (:icase "RVV-")
+                        (:or (setf (gethash :reverse-video opts) t) t))
+                    (:? (:icase "UNDERLINE-")
+                        (:or (setf (gethash :underline opts) t) t))
+                    (:? (:icase "BRIGHT-")
+                        (:or (setf (gethash :bright opts) t) t))
+                    (:? (:assign word (:rule exclude-chars? '(meta-sexp:white-space?)))
+                        (:or (setf (gethash :foreground opts) word) t))
+                    ;; Need to have set *something*
+                    (not (equalp opts (dict)))
+                    (:return opts))
+       (:and (:icase "VALUE")
+             "(" (:assign word (:rule expression?)) ")"
+             (:return word))
+       ;; Termcap color identifier
+       (:rule exclude-chars? '(meta-sexp:white-space?))))
+
+(meta-sexp:defrule thingy () ()
+  (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
+;; Note: members of excluded-chars may be characters or type designators
+(meta-sexp:defrule exclude-chars? (excluded &aux match c) ()
+  (:with-stored-match (match)
+    (:+ (:checkpoint (:assign c (:type character))
+                     (not (some (lambda (thing)
+                                  (typecase thing
+                                    (character (eql thing c))
+                                    (t (typep c thing))))
+                                excluded)))))
+  (:return match))
 
 ;; protermcap-attribute
 (meta-sexp:defrule rule3417? () ()
