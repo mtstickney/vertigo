@@ -135,7 +135,6 @@
    - Handled in top-level statement parser, not on a per-statement
      basis.
 * Things to do
-  - Write tests + impl for color phrase
-  - Finish impl + add tests for frame phrase's color spec
+  - Replace (:or <thing> t) with (:? <thing>)
   - Keep working on frame phrase
   - finish whatever statement it was that depended on frame-phrase
