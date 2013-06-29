@@ -147,8 +147,6 @@
        ;; Termcap color identifier
        (:rule exclude-chars? '(meta-sexp:white-space?))))
 
-(meta-sexp:defrule thingy () ()
-  (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
 ;; Note: members of excluded-chars may be characters or type designators
 (meta-sexp:defrule exclude-chars? (excluded &aux match c) ()
   (:with-stored-match (match)
