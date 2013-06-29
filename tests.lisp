@@ -664,7 +664,7 @@
                  (parse #'vertigo::wait-for-statement? "WAIT-FOR web-notify OF DEFAULT-WINDOW"))
   (assert-equalp (vertigo::make-statement
                   :type :wait-for-web-notify
-                  :data (vertigo::dict))
+                  :data (vertigo::dict :pause (vertigo::make-ident :name "bar")))
                  (parse #'vertigo::wait-for-statement? "WAIT-FOR \"WEB-NOTIFY\" OF DEFAULT-WINDOW
 PAUSE bar"))
   (assert-equalp (vertigo::make-statement
