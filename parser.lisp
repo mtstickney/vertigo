@@ -42,5 +42,43 @@
     (meta-sexp:transform-grammar ret ctx t :and (loop for i from 1 to count
                                                    append (cdr args)))))
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :with-binds)) &optional args)
+  (let ((*bind-vars* '()))
+    (declare (special *bind-vars*))
+    (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint
+                                                  args)))
+      `(let ,(reverse *bind-vars*)
+         ,body-code))))
+
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :bind)) &optional args)
+  (declare (special *bind-vars*))
+  (flet ((var-spec-var (spec) (if (consp spec) (first spec) spec)))
+    (destructuring-bind (form var-spec &aux (var (var-spec-var var-spec))) args
+      (restart-case (progn
+                      (when (member var *bind-vars*
+                                    :key #'var-spec-var)
+                        (error "Variable ~S is already bound by a :BIND form~%" var))
+                      (push var-spec *bind-vars*)
+                      (meta-sexp:transform-grammar ret ctx t :assign
+                                                   (list var form)))
+        (use-value (new-var-spec)
+          :report "Use a different variable spec"
+          :interactive (lambda ()
+                         (prompt-until "Enter a new variable spec"
+                                       (lambda (s)
+                                         (let ((primary-value (first s)))
+                                           ;; True if either it's a
+                                           ;; var or a (var binding)
+                                           ;; form
+                                           (or (symbolp primary-value)
+                                               (and (listp primary-value)
+                                                    (symbolp (first primary-value))
+                                                    (endp (cddr primary-value)))
+                                               (format *query-io* "~&Not a valid variable spec, try again.~%"))))))
+
+          (setf var-spec new-var-spec))))))
+
 (meta-sexp:defrule whitespace? () ()
   (:+ (:type meta-sexp:white-space?)))
