@@ -328,21 +328,31 @@
     ;; It's important that ops that are prefixes of other ops come afterwards
     (:or "::"
          ":"
-         "MODULO"
          "/"
          "*"
          "+"
          "-"
-         "NOT"
-         "AND"
-         "OR"
          "["
-         "<>" "NE"
-         "<=" "LE"
-         ">=" "GE"
-         "<" "LT"
-         ">" "GT"
-         "=" "EQ")))
+         "<>"
+         "<="
+         ">="
+         "<"
+         ">"
+         "="
+         (:and (:or
+                "MODULO"
+                "NE"
+                "LE"
+                "GE"
+                "LT"
+                "GT"
+                "EQ"
+                "NOT"
+                "AND"
+                "OR")
+               ;; non-symbolic operators must be followed by
+               ;; non-identifier character
+               (:not (:type identifier-char))))))
 
 (meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
   (:assign lhs (:rule unary-value?))
