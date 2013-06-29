@@ -208,13 +208,7 @@
           (:not (:type identifier-char))
           (:return (make-boolean-value :val val)))))
 
-(meta-sexp:defrule literal? () ()
-  (:or (:rule string-literal?)
-       (:rule boolean-literal?)
-       (:rule datetime-literal?)
-       (:rule date-literal?)
-       (:rule numeric-literal?)
-       (:rule boolean-literal?)))
+
 
 ;; '.' isn't treated as an operator here because we need to use
 ;; whitespace to distinguish between field reference and statement separation
@@ -259,12 +253,19 @@
   (:assign val (:rule token :identifier))
   (or (not value)
       (equalp (ident-name val) value)))
-(meta-sexp:defrule atom? (&aux val) ()
-  (:assign val (:or (:rule literal?)
-                    ;; Needs to come before identifier
-                    (:rule buffer-field?)
-                    (:rule identifier?)
-                    (:rule function-call?))))
+
+(meta-sexp:defrule literal? () ()
+  (:or (:rule token :string)
+       (:rule token :boolean)
+       (:rule token :datetime)
+       (:rule token :date)
+       (:rule token :number)))
+
+(meta-sexp:defrule atom? () ()
+  (:or (:rule literal?)
+       (:rule token :buffer-field)
+       (:rule token :identifier)
+       (:rule token :funcall)))
 
 (defun right-binding-power (op arity)
   (cond
@@ -310,14 +311,13 @@
   (:or
    ;; Unary operator followed by expression
    (:checkpoint
-    (:and
-     (:or (:and (:assign op (:or "+" "-"))
-                (:? (:rule whitespace?)))
-          (:and (:assign op (:icase "NOT"))
-                (:not (:type identifier-char))
-                (:rule whitespace?)))
-     (:assign expr (:rule expression? (right-binding-power op 1)))
-     (:return (make-unary-op-node :op op :val expr))))
+    (:assign op (:rule token :operator))
+    (or (equalp op "+")
+        (equalp op "-")
+        (equalp op "NOT"))
+    (:? (:rule whitespace?))
+    (:assign expr (:rule expression? (right-binding-power op 1)))
+    (:return (make-unary-op-node :op op :val expr)))
    (:rule atom?)
    (:and (:delimited (:? (:rule whitespace?))
                      "(" (:assign expr (:rule expression?)) ")")
