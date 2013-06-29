@@ -7,20 +7,18 @@
        ))
 
 ;; Form no. 1
-(meta-sexp:defrule wait-for-web-notify? (&aux pause exclusive) ()
-  (:delimited (:rule whitespace?)
-              (:icase "WAIT-FOR")
-              (:or (:icase "\"WEB-NOTIFY\"")
-                   (:icase "WEB-NOTIFY"))
-              (:icase "OF") (:icase "DEFAULT-WINDOW"))
+(meta-sexp:defrule wait-for-web-notify? (&aux wait-str pause exclusive) ()
+  (:k "WAIT-FOR")
+  (:or (:and (:assign wait-str (:rule token :string))
+             (equalp (string-value-str wait-str) "WEB-NOTIFY"))
+       (:k "WEB-NOTIFY"))
+  (:k "OF" "DEFAULT-WINDOW")
+
 
   ;; options can (probably) appear in any order
-  (:? (:checkpoint (:rule whitespace?)
-                   (:icase "PAUSE")
-                   (:rule whitespace?)
+  (:? (:checkpoint (:k "PAUSE")
                    (:assign pause (:rule expression?))))
-  (:? (:checkpoint (:rule whitespace?)
-                   (:icase "EXCLUSIVE-WEB-USER")
+  (:? (:checkpoint (:k "EXCLUSIVE-WEB-USER")
                    (:assign exclusive t)))
   (:return (let ((args '()))
              (when pause
@@ -92,45 +90,34 @@
 
 ;;; VIEW statement
 ;; Form no. 1
-(meta-sexp:defrule view-statement? (&aux stream widg window (args '())) ()
-  (:icase "VIEW")
-  (:? (:checkpoint
-       (:rule whitespace?)
-       (:delimited (:rule whitespace?)
-                   (:icase "STREAM")
-                   (:assign stream (:rule expression?)))
-       (progn
-         (push stream args)
-         (push :stream args)
-         t)))
-  (:? (:checkpoint
-       (:rule whitespace?)
-       ;; "IN" indicates an in-window option, not an identifier
-       (:not (:icase "IN"))
-       (:assign widg (:rule widget-phrase?))
-       (progn
-         (push widg args)
-         (push :widget args)
-         t)))
-  (:? (:checkpoint
-       (:rule whitespace?)
-       (:delimited (:rule whitespace?)
-                   (:icase "IN")
-                   (:icase "WINDOW")
-                   (:assign window (:rule expression?)))
-       (progn
-         (push window args)
-         (push :window args)
-         t)))
-  (:return (vertigo::make-statement :type :view
-                                    :data (apply #'vertigo::dict args))))
+(meta-sexp:defrule view-statement? () ()
+  (:with-binds
+      (:k "VIEW")
+    (:? (:checkpoint
+         (:k "STREAM")
+         (:bind (:rule expression?) stream)))
+    (:? (:checkpoint
+         ;; "IN" indicates an in-window option, not an identifier
+         (:not (:k "IN"))
+         (:bind (:rule widget-phrase?) widget)))
+    (:? (:checkpoint
+         (:k "IN" "WINDOW")
+         (:bind (:rule expression?) window)))
+    (let ((data (dict)))
+      (when stream
+        (setf (gethash :stream data) stream))
+      (when widget
+        (setf (gethash :widget data) widget))
+      (when window
+        (setf (gethash :window data) window))
+      (make-statement :type :view
+                      :data data))))
 
 
 ;;; VALIDATE statement
 ;; Form no. 1
 (meta-sexp:defrule validate-statement? (&aux record) ()
-  (:icase "VALIDATE")
-  (:rule whitespace?)
+  (:k "VALIDATE")
   (:assign record (:rule expression?))
   (:return (make-statement :type :validate
                            :data (dict :record record))))
@@ -139,7 +126,7 @@
 ;;; USING statement
 ;; Form no. 1
 (meta-sexp:defrule using-statement? (&aux namespace) ()
-  (:icase "USING")
+  (:k "USING")
   (:rule whitespace?)
   (:assign namespace (:rule import-namespace?))
   (:return (vertigo::make-statement
@@ -158,12 +145,12 @@
 
 ;;; USE statement
 ;; Form no. 1
-(meta-sexp:defrule use-statement? (&aux expr) ()
-  (:delimited (:rule whitespace?)
-              (:icase "USE")
-              (:assign expr (:rule expression?)))
-  (:return (make-statement :type :use
-                           :data (dict :env expr))))
+(meta-sexp:defrule use-statement? () ()
+  (:with-binds
+      (:k "USE")
+    (:bind (:rule expression?) expr)
+    (:return (make-statement :type :use
+                             :data (dict :env expr)))))
 
 
 ;;; UP statement

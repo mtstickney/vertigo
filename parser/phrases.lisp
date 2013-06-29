@@ -24,58 +24,44 @@
        (:rule at-linear?)))
 
 ;; Form no. 1
-(meta-sexp:defrule at-linear? (&aux n) ()
-  (:and (:icase "AT") (:rule whitespace?) (:assign n (:rule expression?)))
-  (:return n))
+(meta-sexp:defrule at-linear? () ()
+  (:k "AT")
+  (:rule expression?))
 
 ;; Form no. 2
 (meta-sexp:defrule at-2d? (&aux opt (opts (dict))) ()
-  (:icase "AT")
-  (:rule whitespace?)
-  (:or (:checkpoint (:icase "X")
+  (:k "AT")
+  (:or (:checkpoint (:k "X")
+                    (:assign opt (:rule expression?))
+                    (setf (gethash :x opts) opt
+                          (gethash :x-type opts) :x))
+       (:checkpoint (:k "X-OF")
+                    (:assign opt (:rule expression?))
+                    (setf (gethash :x opts) opt
+                          (gethash :x-type opts) :x-of))
+       (:checkpoint (:k "COLUMN")
                     (:rule whitespace?)
                     (:assign opt (:rule expression?))
-                    (:or (setf (gethash :x opts) opt
-                               (gethash :x-type opts) :x) t))
-       (:checkpoint (:icase "X-OF")
-                    (:rule whitespace?)
+                    (setf (gethash :x opts) opt
+                          (gethash :x-type opts) :column)))
+  (:or (:checkpoint (:k "Y")
                     (:assign opt (:rule expression?))
-                    (:or (setf (gethash :x opts) opt
-                               (gethash :x-type opts) :x-of)
-                         t))
-       (:checkpoint (:icase "COLUMN")
-                    (:rule whitespace?)
+                    (setf (gethash :y opts) opt
+                          (gethash :y-type opts) :y))
+       (:checkpoint (:k "Y-OF")
                     (:assign opt (:rule expression?))
-                    (:or (setf (gethash :x opts) opt
-                               (gethash :x-type opts) :column)
-                         t)))
-  (:rule whitespace?)
-  (:or (:checkpoint (:icase "Y")
-                    (:rule whitespace?)
+                    (setf (gethash :y opts) opt
+                          (gethash :y-type opts) :y-of))
+       (:checkpoint (:k "ROW")
                     (:assign opt (:rule expression?))
-                    (:or (setf (gethash :y opts) opt
-                               (gethash :y-type opts) :y)
-                         (format *debug-io* "Y-TYPE is ~S~%" (gethash :y-type opts))
-                         t))
-       (:checkpoint (:icase "Y-OF")
-                    (:rule whitespace?)
-                    (:assign opt (:rule expression?))
-                    (:or (setf (gethash :y opts) opt
-                               (gethash :y-type opts) :y-of)
-                         t))
-       (:checkpoint (:icase "ROW")
-                    (:rule whitespace?)
-                    (:assign opt (:rule expression?))
-                    (:or (setf (gethash :y opts) opt
-                               (gethash :y-type opts) :row)
-                         t)))
-  (:? (:checkpoint (:rule whitespace?)
-                   (:or (:and (:icase "COLON-ALIGNED")
-                              (:or (setf (gethash :align opts) :colon) t))
-                        (:and (:icase "LEFT-ALIGNED")
-                              (:or (setf (gethash :align opts) :left) t))
-                        (:and (:icase "RIGHT-ALIGNED")
-                              (:or (setf (gethash :align opts) :right) t)))))
+                    (setf (gethash :y opts) opt
+                          (gethash :y-type opts) :row)))
+  (:? (:or (:and (:k "COLON-ALIGNED")
+                 (setf (gethash :align opts) :colon))
+           (:and (:k "LEFT-ALIGNED")
+                 (setf (gethash :align opts) :left))
+           (:and (:k "RIGHT-ALIGNED")
+                 (setf (gethash :align opts) :right))))
   (:return opts))
 
 ;; x
@@ -121,27 +107,27 @@
 ;;; COLOR phrase
 ;; Form no. 1
 (meta-sexp:defrule color-phrase? (&aux word (opts (dict))) ()
-  (:or (:and (:icase "NORMAL")
+  (:or (:and (:k "NORMAL")
              (:return :normal))
-       (:and (:icase "INPUT")
+       (:and (:k "INPUT")
              (:return :input))
-       (:and (:icase "MESSAGES")
+       (:and (:k "MESSAGES")
              (:return :messages))
-       (:or (:rule hex-integer?)
-            (:rule string-literal?))
-       (:and (:delimited (:? (:rule whitespace?))
-                         (:icase "VALUE")
-                         "(" (:assign word (:rule expression?)) ")")
+       (:rule literal?)
+       (:and (:k "VALUE")
+             (:rule token :lparen)
+             (:assign word (:rule expression?))
+             (:rule token :rparen)
              (:return word))
        (:checkpoint (:? (:icase "BLINK-")
-                        (:or (setf (gethash :blink opts) t) t))
+                           (setf (gethash :blink opts) t))
                     (:? (:icase "BRIGHT-")
-                        (:or (setf (gethash :bright opts) t) t))
+                        (setf (gethash :bright opts) t))
                     (:and (:assign word (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
-                          (:or (setf (gethash :foreground opts) word) t))
+                          (setf (gethash :foreground opts) word))
                     (:and #\-
                           (:assign word (:rule exclude-chars? '(meta-sexp:white-space? #\-)))
-                          (:or (setf (gethash :background opts) word) t))
+                          (setf (gethash :background opts) word))
                     ;; Need to have set *something*
                     (not (equalp opts (dict)))
                     (:return opts))
@@ -615,37 +601,28 @@
 
 ;; color-specification
 (meta-sexp:defrule frame-color-spec? (&aux opt (opts (dict))) ()
-  (:or (:and (:? (:checkpoint (:icase "BGCOLOR")
-                              (:rule whitespace?)
+  (:or (:and (:? (:checkpoint (:k "BGCOLOR")
                               (:assign opt (:rule expression?))
-                              (:or (setf (gethash :bgcolor opts) opt) t)))
-             (:? (:checkpoint (:? (:rule whitespace?))
-                              (:icase "DCOLOR")
-                              (:rule whitespace?)
+                              (setf (gethash :bgcolor opts) opt)))
+             (:? (:checkpoint (:k "DCOLOR")
                               (:assign opt (:rule expression?))
-                              (:or (setf (gethash :dcolor opts) opt) t)))
-             (:? (:checkpoint (:? (:rule whitespace?))
-                              (:icase "FGCOLOR")
-                              (:rule whitespace?)
+                              (setf (gethash :dcolor opts) opt)))
+             (:? (:checkpoint (:k "FGCOLOR")
                               (:assign opt (:rule expression?))
-                              (:or (setf (gethash :fgcolor opts) opt) t)))
-             (:? (:checkpoint (:? (:rule whitespace?))
-                              (:icase "PFCOLOR")
-                              (:rule whitespace?)
+                              (setf (gethash :fgcolor opts) opt)))
+             (:? (:checkpoint (:k "PFCOLOR")
                               (:assign opt (:rule expression?))
-                              (:or (setf (gethash :pfcolor opts) opt)) t))
+                              (setf (gethash :pfcolor opts) opt)))
              (not (equalp opts (dict))))
-       (:checkpoint (:icase "COLOR")
-                    (:? (:checkpoint (:rule whitespace?)
-                                     (:icase "DISPLAY")))
-                    (:rule whitespace?)
+       (:checkpoint (:k "COLOR")
+                    (:? (:k "DISPLAY"))
+                    (:or (format *debug-io* "color display~%") t)
                     (:assign opt (:rule color-phrase?))
-                    (:or (setf (gethash :dcolor opts) opt) t)
-                    (:? (:checkpoint (:rule whitespace?)
-                                     (:icase "PROMPT")
-                                     (:rule whitespace?)
+                    (:or (format *debug-io* "color phrase ~%") t)
+                    (setf (gethash :dcolor opts) opt)
+                    (:? (:checkpoint (:k "PROMPT")
                                      (:assign opt (:rule color-phrase?))
-                                     (:or (setf (gethash :pfcolor opts) opt) t)))))
+                                     (setf (gethash :pfcolor opts) opt)))))
   (:return opts))
 
 ;; expression
@@ -702,36 +679,25 @@
 
 ;; title-phrase
 (meta-sexp:defrule title-phrase? (&aux opt (opts (dict))) ()
-  (:icase "TITLE")
-  (:? (:or (:and (:? (:checkpoint (:rule whitespace?)
-                                  (:icase "BGCOLOR")
-                                  (:rule whitespace?)
+  (:k "TITLE")
+  (:? (:or (:and (:? (:checkpoint (:k "BGCOLOR")
                                   (:assign opt (:rule expression?))
-                                  (:or (setf (gethash :bg-color opts) opt) t)))
-                 (:? (:checkpoint (:rule whitespace?)
-                                  (:icase "DCOLOR")
-                                  (:rule whitespace?)
+                                  (setf (gethash :bg-color opts) opt)))
+                 (:? (:checkpoint (:k "DCOLOR")
                                   (:assign opt (:rule expression?))
-                                  (:or (setf (gethash :title-color opts) opt) t)))
-                 (:? (:checkpoint (:rule whitespace?)
-                                  (:icase "FGCOLOR")
-                                  (:rule whitespace?)
+                                  (setf (gethash :title-color opts) opt)))
+                 (:? (:checkpoint (:k "FGCOLOR")
                                   (:assign opt (:rule expression?))
-                                  (:or (setf (gethash :fg-color opts) opt) t)))
+                                  (setf (gethash :fg-color opts) opt)))
                  (not (equalp opts (dict))))
-           (:checkpoint (:rule whitespace?)
-                        (:icase "COLOR")
-                        (:rule whitespace?)
+           (:checkpoint (:k "COLOR")
                         (:assign opt (:rule color-phrase?))
-                        (:or (setf (gethash :color opts) opt) t))))
-  (:? (:checkpoint (:rule whitespace?)
-                   (:icase "FONT")
-                   (:rule whitespace?)
+                        (setf (gethash :color opts) opt))))
+  (:? (:checkpoint (:k "FONT")
                    (:assign opt (:rule expression?))
-                   (:or (setf (gethash :font opts) opt) t)))
-  (:rule whitespace?)
+                   (setf (gethash :font opts) opt)))
   (:assign opt (:rule expression?))
-  (:or (setf (gethash :title opts) opt) t)
+  (setf (gethash :title opts) opt)
   (:return opts))
 
 ;; n
@@ -1144,15 +1110,14 @@
 ;;; SIZE phrase
 ;; Form no. 1
 (meta-sexp:defrule size-phrase? (&aux x y (opts (dict))) ()
-  (:delimited (:rule whitespace?)
-              (:or (:and (:icase "SIZE-PIXELS")
-                         (setf (gethash :size-type opts) :pixel))
-                   (:and (:or (:checkpoint (:icase "SIZE-CHARS"))
-                              (:checkpoint (:icase "SIZE")))
-                         (setf (gethash :size-type opts) :character)))
-              (:assign x (:rule expression?))
-              (:icase "BY")
-              (:assign y (:rule expression?)))
+  (:or (:and (:k "SIZE-PIXELS")
+             (setf (gethash :size-type opts) :pixel))
+       (:and (:or (:k "SIZE-CHARS")
+                  (:k "SIZE"))
+             (setf (gethash :size-type opts) :character)))
+  (:assign x (:rule expression?))
+  (:k "BY")
+  (:assign y (:rule expression?))
   (setf (gethash :x opts) x
         (gethash :y opts) y)
   (:return opts))
@@ -1307,57 +1272,55 @@
 
 
 ;; frame
-(meta-sexp:defrule frame-widget? (&aux item) ()
-  (:delimited (:rule whitespace?)
-              (:icase "FRAME")
-              (:assign item (:rule expression?)))
-  (:return (make-widget :type :frame
-                        :widget item)))
+(meta-sexp:defrule frame-widget? () ()
+  (:with-binds
+      (:k "FRAME")
+    (:bind (:rule expression?) widget)
+    (:return (make-widget :type :frame
+                          :widget widget))))
 
 ;; field
 (meta-sexp:defrule field-widget? (&aux item parent) ()
   ;; Need either leading FIELD, "IN FRAME" tail, or both
   (:or (:checkpoint
-        (:? (:icase "FIELD")
-            (:rule whitespace?))
-        (:delimited (:rule whitespace?)
-                    (:assign item (:rule expression?))
-                    (:icase "IN") (:icase "FRAME")
-                    (:assign parent (:rule expression?))))
-       (:delimited (:rule whitespace?)
-                   (:icase "FIELD")
-                   (:assign item (:rule expression?))))
+        (:? (:k "FIELD"))
+        (:assign item (:rule expression?))
+        (:k "IN")
+        (:k "FRAME")
+        (:assign parent (:rule expression?)))
+       (:checkpoint
+        (:k "FIELD")
+         (:assign item (:rule expression?))))
   (:return (make-widget :type :field-level
                         :widget item
                         :parent parent)))
 
 ;; column
-(meta-sexp:defrule column-widget? (&aux item parent) ()
-  (:delimited (:? (:rule whitespace?))
-              (:assign item (:rule expression?))
-              (:delimited (:rule whitespace?)
-                          (:icase "IN") (:icase "BROWSE")
-                          (:assign parent (:rule expression?))))
-  (:return (make-widget :type :browse-column
-                        :widget item
-                        :parent parent)))
+(meta-sexp:defrule column-widget? () ()
+  (:with-binds
+      (:bind (:rule expression?) item)
+    (:k "IN" "BROWSE")
+    (:bind (:rule expression?) parent)
+    (:return (make-widget :type :browse-column
+                          :widget item
+                          :parent parent))))
 
 ;; menu
-(meta-sexp:defrule menu-widget? (&aux item) ()
-  (:delimited (:rule whitespace?)
-              (:or (:icase "MENU") (:icase "SUB-MENU"))
-              (:assign item (:rule expression?)))
-  (:return (make-widget :type :menu
-                        :widget item)))
+(meta-sexp:defrule menu-widget? () ()
+  (:with-binds
+      (:or (:k "MENU")
+           (:k "SUB-MENU"))
+    (:bind (:rule expression?) item)
+    (:return (make-widget :type :menu
+                          :widget item))))
 
 ;; menu-item
 (meta-sexp:defrule menu-item-widget? (&aux item parent) ()
-  (:delimited (:? (:rule whitespace?))
-              (:icase "MENU-ITEM")
-              (:assign item (:rule expression?))
-              (:? (:checkpoint (:delimited (:rule whitespace?)
-                                           (:icase "IN") (:icase "MENU")
-                                           (:assign parent (:rule expression?))))))
-  (:return (make-widget :type :menu-item
-                        :widget item
-                        :parent parent)))
+  (:with-binds
+      (:k "MENU-ITEM")
+    (:bind (:rule expression?) item)
+    (:? (:checkpoint (:k "IN" "MENU")
+                     (:bind (:rule expression?) parent)))
+    (:return (make-widget :type :menu-item
+                          :widget item
+                          :parent parent))))
