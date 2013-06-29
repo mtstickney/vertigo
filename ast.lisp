@@ -1,5 +1,9 @@
 (in-package #:vertigo)
 
+(defstruct token
+  (type)
+  (value))
+
 (defstruct int-value
   (val))
 
