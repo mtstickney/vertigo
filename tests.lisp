@@ -763,7 +763,7 @@ PAUSE bar"))
                  (parse #'vertigo::color-phrase? "input"))
   (assert-equalp :messages
                  (parse #'vertigo::color-phrase? "MESSAGES"))
-  (assert-equalp 255
+  (assert-equalp (vertigo::make-int-value :val #xFF)
                  (parse #'vertigo::color-phrase? "0xff"))
   (assert-equalp (vertigo::dict :bright t
                                 :foreground "red/black")
@@ -801,10 +801,10 @@ PAUSE bar"))
     (assert-equalp (vertigo::dict :dcolor expr
                                   :pfcolor expr)
                    (parse #'vertigo::frame-color-spec? "DCOLOR foo::bar PFCOLOR foo::bar"))
-    (assert-equalp (vertigo::dict :dcolor 255
+    (assert-equalp (vertigo::dict :dcolor (vertigo::make-int-value :val #xFF)
                                   :pfcolor expr)
                    (parse #'vertigo::frame-color-spec? "COLOR 0xFF PROMPT VALUE( foo::bar )"))
-    (assert-equalp (vertigo::dict :dcolor 255
+    (assert-equalp (vertigo::dict :dcolor (vertigo::make-int-value :val #xFF)
                                   :pfcolor expr)
                    (parse #'vertigo::frame-color-spec? "COLOR DISPLAY 0xFF PROMPT VALUE(foo::bar)"))))
 
