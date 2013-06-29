@@ -81,4 +81,5 @@
           (setf var-spec new-var-spec))))))
 
 (meta-sexp:defrule whitespace? () ()
-  (:+ (:type meta-sexp:white-space?)))
+  (:+ (:or (:type meta-sexp:white-space?)
+           (:type meta-sexp:newline?))))
