@@ -80,6 +80,17 @@
 
           (setf var-spec new-var-spec))))))
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :k)) &optional args)
+  (if (endp (cdr args))
+      ;; Single argument doesn't need an extra checkpoint
+      (meta-sexp:transform-grammar ret ctx t :rule
+                                   (list 'keyword? (first args)))
+      (meta-sexp:transform-grammar ret ctx t :checkpoint
+                                   (mapcar (lambda (form)
+                                             `(:rule keyword? ,form))
+                                           args))))
+
 (meta-sexp:defrule whitespace? () ()
   (:+ (:or (:type meta-sexp:white-space?)
            (:type meta-sexp:newline?))))
