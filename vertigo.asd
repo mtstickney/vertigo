@@ -5,7 +5,7 @@
   :description "Describe vertigo here"
   :author "Your Name <your.name@example.com>"
   :license "Specify license here"
-  :depends-on (#:meta-sexp #:lisp-unit)
+  :depends-on (#:meta-sexp #:lisp-unit #:alexandria)
   :components ((:file "package")
                (:file "util")
                (:file "parser")
