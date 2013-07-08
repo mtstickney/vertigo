@@ -340,16 +340,16 @@
          ">"
          "="
          (:and (:or
-                "MODULO"
-                "NE"
-                "LE"
-                "GE"
-                "LT"
-                "GT"
-                "EQ"
-                "NOT"
-                "AND"
-                "OR")
+                (:icase "MODULO")
+                (:icase "NE")
+                (:icase "LE")
+                (:icase "GE")
+                (:icase "LT")
+                (:icase "GT")
+                (:icase "EQ")
+                (:icase "NOT")
+                (:icase "AND")
+                (:icase "OR"))
                ;; non-symbolic operators must be followed by
                ;; non-identifier character
                (:not (:type identifier-char))))))
