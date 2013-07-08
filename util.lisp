@@ -32,3 +32,9 @@
   (loop for val = (prompt-for-val prompt)
      until (funcall test val)
      finally (return val)))
+
+(defun -> (initial &rest funcs)
+  (reduce (lambda (v f)
+            (funcall f v))
+          funcs
+          :initial-value initial))
