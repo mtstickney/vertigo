@@ -91,6 +91,15 @@
                                              `(:rule keyword? ,form))
                                            args))))
 
+;; Match a keyword as a :k form
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive symbol) &optional args)
+  "Transforms a symbol form (only keywords are transformed, other symbols are left alone)."
+  (declare (ignore args))
+  (if (keywordp directive)
+      (meta-sexp:transform-grammar ret ctx t :k (list (symbol-name directive)))
+      directive))
+
 (meta-sexp:defrule whitespace? () ()
   (:+ (:or (:type meta-sexp:white-space?)
            (:type meta-sexp:newline?))))
