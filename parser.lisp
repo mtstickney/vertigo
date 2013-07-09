@@ -54,6 +54,8 @@
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :bind)) &optional args)
   (declare (special *bind-vars*))
+  (when (not (boundp '*bind-vars*))
+    (error ":BIND outside of :WITH-BINDS form"))
   (flet ((var-spec-var (spec) (if (consp spec) (first spec) spec)))
     (destructuring-bind (form var-spec &aux (var (var-spec-var var-spec))) args
       (restart-case (progn
