@@ -46,8 +46,9 @@
     (ret ctx (in-meta (eql t)) (directive (eql :with-binds)) &optional args)
   (let ((*bind-vars* '()))
     (declare (special *bind-vars*))
+    ;; Reserve first arg for future arglist (e.g (:with-binds () ...))
     (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint
-                                                  args)))
+                                                  (cdr args))))
       `(let ,(reverse *bind-vars*)
          ,body-code))))
 
