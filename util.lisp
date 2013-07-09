@@ -7,7 +7,10 @@
      collect delimiter))
 
 (defun dict (&rest keys)
-  (loop for (key . rest) on keys by #'cddr
+  (list->dict keys))
+
+(defun list->dict (list)
+  (loop for (key . rest) on list by #'cddr
      with m = (make-hash-table :test 'equal)
      if (endp rest)
      do (error "Even number of arguments required for dict constructor.")
