@@ -6,6 +6,18 @@
      if (cdr x)
      collect delimiter))
 
+(defun list-length-p (n list)
+  (when (and (= n 0)
+             (endp list))
+    (return-from list-length-p t))
+  (loop for c on list
+     for i from 1 to n
+     finally (return (and (= i n)
+                          (endp (cdr c))))))
+
+(defun to-bool (val)
+  (if val t nil))
+
 (defun dict (&rest keys)
   (list->dict keys))
 
