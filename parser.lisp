@@ -84,6 +84,43 @@
           (setf var-spec new-var-spec))))))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :with-dict-binds)) &optional args)
+  (let ((*bind-keys* '())
+        (*dict-var* (gensym "dict")))
+    (declare (special *bind-keys* *dict-var*))
+    ;; First arg is reserved for future arguments
+    (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint (cdr args))))
+      `(let ((,*dict-var* (make-hash-table :test 'equal)))
+         (and ,body-code
+              ,*dict-var*)))))
+
+;; TODO: :bind/:kbind checkpointing (only do assigns if all
+;; checkpointed forms succeed.
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :kbind)) &optional args)
+  (declare (special *bind-keys* *dict-var*))
+  (when (or (not (boundp '*bind-keys*))
+            (not (boundp '*dict-var*)))
+    (error ":KBIND outside of :WITH-DICT-BINDS form"))
+  (destructuring-bind (form key &optional (key-func (quote #'identity))) args
+    (restart-case (progn
+                    (when (member key *bind-keys*)
+                      (error "Key ~S already bound in a :KBIND form~%" key))
+                    (push key *bind-keys*)
+                    (let ((form-code (meta-sexp:transform-grammar ret ctx t form))
+                          (result-var (gensym "result")))
+                      `(let ((,result-var ,form-code))
+                         (when ,result-var
+                           (setf (gethash ',key ,*dict-var*)
+                                 (funcall ,key-func ,result-var))
+                           t))))
+        (use-value (new-key)
+          :report "Use a different key"
+          :interactive (lambda ()
+                         (prompt-for-val "Enter a new key"))
+          (setf key new-key)))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :opt)) &optional args)
   (if (list-length-p 1 args)
       ;; We assume a singleton form does any needed checkpointing
