@@ -81,6 +81,13 @@
           (setf var-spec new-var-spec))))))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :opt)) &optional args)
+  (if (list-length-p 1 args)
+      ;; We assume a singleton form does any needed checkpointing
+      (meta-sexp:transform-grammar ret ctx t :? args)
+      (meta-sexp:transform-grammar ret ctx t :? (list (cons :checkpoint args)))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :k)) &optional args)
   (if (list-length-p 1 args)
       ;; Single argument doesn't need an extra checkpoint
