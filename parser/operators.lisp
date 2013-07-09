@@ -251,8 +251,10 @@
 
 (meta-sexp:defrule keyword? (&optional value &aux val) ()
   (:assign val (:rule token :identifier))
-  (or (not value)
-      (equalp (ident-name val) value)))
+  (let ((kword (ident-name val)))
+    (or (not value)
+        (and (equalp kword value)
+             kword))))
 
 (meta-sexp:defrule literal? () ()
   (:or (:rule token :string)
