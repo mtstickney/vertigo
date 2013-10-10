@@ -125,6 +125,18 @@
           (setf key new-key)))))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :dict-checkpoint)) &optional args)
+  (declare (special *dict-var*))
+  (let ((stored-dict-var (gensym "STORED-DICT"))
+        (result-var (gensym "RESULT"))
+        (body-code (meta-sexp:transform-grammar ret ctx t :checkpoint args)))
+    `(let ((,stored-dict-var ,*dict-var*))
+       (let ((,result-var ,body-code))
+         (unless ,result-var
+           (setf ,*dict-var* ,stored-dict-var))
+         ,result-var))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :opt)) &optional args)
   (if (list-length-p 1 args)
       ;; We assume a singleton form doesn't any needed checkpointing
