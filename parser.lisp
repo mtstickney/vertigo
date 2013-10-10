@@ -131,7 +131,7 @@
     (error ":DICT-CHECKPOINT outside of :WITH-DICT-BINDS form"))
   (let ((stored-dict-var (gensym "STORED-DICT"))
         (result-var (gensym "RESULT"))
-        (body-code (meta-sexp:transform-grammar ret ctx t :checkpoint args)))
+        (body-code (meta-sexp:transform-grammar ret ctx t :and args)))
     `(let ((,stored-dict-var ,*dict-var*))
        (let ((,result-var ,body-code))
          (unless ,result-var
