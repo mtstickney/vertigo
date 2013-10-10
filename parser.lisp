@@ -153,7 +153,7 @@
   (if (list-length-p 1 args)
       ;; We assume a singleton form doesn't any needed checkpointing
       (meta-sexp:transform-grammar ret ctx t :? args)
-      (meta-sexp:transform-grammar ret ctx t :? (list (cons :checkpoint args)))))
+      (meta-sexp:transform-grammar ret ctx t :? (list (cons :checkpoint* args)))))
 
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :k)) &optional args)
