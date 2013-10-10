@@ -92,7 +92,7 @@
     (declare (special *bind-keys* *dict-var*))
     ;; First arg is reserved for future arguments
     (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint (cdr args))))
-      `(let ((,*dict-var* (make-hash-table :test 'equal)))
+      `(let ((,*dict-var* (make-instance 'cl-persist:persistent-map)))
          (and ,body-code
               ,*dict-var*)))))
 
@@ -115,8 +115,8 @@
                           (result-var (gensym "RESULT")))
                       `(let ((,result-var ,form-code))
                          (when ,result-var
-                           (setf (gethash ',key ,*dict-var*)
-                                 (funcall ,key-func ,result-var))
+                           (setf ,*dict-var*
+                                 (cl-persist:add ,*dict-var* ',key (funcall ,key-func ,result-var)))
                            ,result-var))))
         (use-value (new-key)
           :report "Use a different key"
