@@ -127,6 +127,8 @@
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :dict-checkpoint)) &optional args)
   (declare (special *dict-var*))
+  (when (not (boundp '*dict-var*))
+    (error ":DICT-CHECKPOINT outside of :WITH-DICT-BINDS form"))
   (let ((stored-dict-var (gensym "STORED-DICT"))
         (result-var (gensym "RESULT"))
         (body-code (meta-sexp:transform-grammar ret ctx t :checkpoint args)))
