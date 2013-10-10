@@ -138,6 +138,16 @@
            (setf ,*dict-var* ,stored-dict-var))
          ,result-var))))
 
+;; Combined dict/parser checkpoint
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :checkpoint*)) &optional args)
+  (declare (special *dict-var*))
+  (meta-sexp:transform-grammar ret ctx t :checkpoint
+                               (if (boundp '*dict-var*)
+                                   (meta-sexp:transform-grammar ret ctx t :dict-checkpoint
+                                                                args)
+                                   args)))
+
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :opt)) &optional args)
   (if (list-length-p 1 args)
