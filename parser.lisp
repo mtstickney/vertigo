@@ -83,6 +83,8 @@
 
           (setf var-spec new-var-spec))))))
 
+;; TODO: the actual dict appears to be lexically scoped; is this a
+;; problem for e.g. cross-rule binds?
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :with-dict-binds)) &optional args)
   (let ((*bind-keys* '())
@@ -96,6 +98,8 @@
 
 ;; TODO: :bind/:kbind checkpointing (only do assigns if all
 ;; checkpointed forms succeed.
+;; TODO: what about if/when a key is non-literal? *bind-keys* probably
+;; breaks, ',key stops being legit...
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :kbind)) &optional args)
   (declare (special *bind-keys* *dict-var*))
