@@ -117,7 +117,7 @@
                          (when ,result-var
                            (setf (gethash ',key ,*dict-var*)
                                  (funcall ,key-func ,result-var))
-                           t))))
+                           ,result-var))))
         (use-value (new-key)
           :report "Use a different key"
           :interactive (lambda ()
