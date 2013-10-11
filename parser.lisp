@@ -171,4 +171,9 @@
 
 (meta-sexp:defrule whitespace? () ()
   (:+ (:or (:type meta-sexp:white-space?)
-           (:type meta-sexp:newline?))))
+           #\Tab
+           #\Newline
+           #\Linefeed
+           #\Page
+           #\Return
+           #\Space)))
