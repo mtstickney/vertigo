@@ -11,9 +11,9 @@
   (:k "WAIT-FOR")
   (:or (:and (:assign wait-str (:rule token :string))
              (equalp (string-value-str wait-str) "WEB-NOTIFY"))
-       (:k "WEB-NOTIFY"))
-  (:k "OF" "DEFAULT-WINDOW")
-
+       :web-notify)
+  :of
+  :default-window
 
   ;; options can (probably) appear in any order
   (:? (:checkpoint (:k "PAUSE")
