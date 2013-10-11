@@ -18,6 +18,10 @@
 (defun to-bool (val)
   (if val t nil))
 
+(defun pdict (&rest keys)
+  (let ((m (make-instance 'cl-persist:persistent-map)))
+    (apply #'cl-persist:add m keys)))
+
 (defun dict (&rest keys)
   (list->dict keys))
 
