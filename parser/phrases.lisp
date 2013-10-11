@@ -412,25 +412,24 @@
                     (equalp spec "ATTR-SPACE"))))
     (:opt :cancel-button
           (:kbind (:rule expression?) :cancel-button))
-    (:opt (:kbind :centered :centered (constantly t)))
+    (:key-flags :centered)
     (:opt (:kbind (:rule frame-color-spec?) :color))
     ;; NOTE: the expression used here gets re-evaluated whenever the
     ;; frame comes into view, should be a closure
     (:opt :column  (:kbind (:rule expression?) :column))
     (:opt (:kbind (:rule expression?) :num-columns)
           :columns)
-    (:opt (:kbind :context-help :context-help (constantly t)))
+    (:key-flags :context-help)
     (:opt :context-help-file
           (:kbind (:rule expression?) :context-help-file))
     (:opt :default-button
           (:kbind (:rule expression?) :default-button))
-    (:opt (:kbind :drop-target :drop-target (constantly t)))
+    (:key-flags :drop-target)
     (:opt (:or (:checkpoint* (:kbind (:rule expression?) :max-duplicate-records)
                              (:kbind :down :down-frame (constantly t)))
                (:checkpoint* (:kbind :down :down-frame (constantly t)))))
-    (:opt (:kbind :export :export (constantly t)))
-    (:opt :widget-id
-          (:kbind (:rule expression?) :widget-id))
+    (:key-flags :export)
+    (:opt :widget-id (:kbind (:rule expression?) :widget-id))
     (:opt :font (:kbind (:rule expression?) :font))
     (:opt :frame (:kbind (:rule expression?) :frame-id))
     (:opt (:kbind (:or :inherit-bgcolor
@@ -443,20 +442,20 @@
                   :inherit-fgcolor
                   (lambda (o)
                     (equalp o "INHERIT-FGCOLOR"))))
-    (:opt (:kbind :keep-tab-order :keep-tab-order (constantly t)))
-    (:opt (:kbind :no-box :no-box (constantly t)))
-    (:opt (:kbind :no-hide :no-hide (constantly t)))
-    (:opt (:kbind :no-labels :no-labels (constantly t)))
+    (:key-flags :keep-tab-order
+                :no-box
+                :no-hide
+                :no-labels)
     (:opt (:kbind :use-dict-exps :use-dict-help-strings (constantly t))
           (:kbind t :use-dict-validation-strings))
-    (:opt (:kbind :no-validate :no-validate (constantly t)))
-    (:opt (:kbind :no-auto-validate :no-auto-validate (constantly t)))
-    (:opt (:kbind :no-help :no-help (constantly t)))
-    (:opt (:kbind :no-underline :no-underline (constantly t)))
-    (:opt (:kbind :overlay :overlay (constantly t)))
-    (:opt (:kbind (:or (:and :page-bottom ':bottom)
-                       (:and :page-top ':top))
-                  :page-type))
+    (:key-flags :no-validate
+                :no-auto-validate
+                :no-help
+                :no-underline
+                :overlay
+                ((:or (:and :page-bottom ':bottom)
+                      (:and :page-top ':top))
+                 :page-type))
     (:opt :retain
           (:kbind (:rule expression?) :scroll-retain))
     (:opt :row
@@ -465,19 +464,19 @@
                        (:and :stream-io ':stream))
                   :io-type))
     (:opt :scroll (:kbind (:rule expression?) :scroll-by))
-    (:opt (:kbind :scrollable :scrollable (constantly t)))
-    (:opt (:kbind :side-labels :side-labels (constantly t)))
+    (:key-flags :scrollable
+                :side-labels)
     (:opt (:kbind (:rule size-phrase?) :size))
     (:opt :stream (:kbind (:rule expression?) :stream))
     (:opt (:kbind :three-d :lickable))
     (:opt (:kbind (:rule title-phrase?) :title))
-    (:opt (:kbind :top-only :top-only (constantly t)))
-    (:opt (:kbind :use-text :use-text (constantly t)))
+    (:key-flags :top-only
+                :use-text)
     (:opt (:kbind :v6frame :v6frame (constantly t))
           (:opt (:kbind (:or (:and :use-revvideo ':reverse-video)
                              (:and :use-underline ':underline))
                         :v6-frame-opt)))
-    (:opt (:kbind (:k "VIEW-AS" "DIALOG-BOX") :dialog-box (constantly t)))
+    (:key-flag ((:and :view-as :dialog-box) :dialog-box))
     (:opt :width (:kbind (:rule expression?) :width))
     (:opt (:k "IN" "WINDOW")
           (:kbind (:rule expression?) :parent-window))))
