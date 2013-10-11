@@ -970,3 +970,62 @@ replaced by NIL, as if traversing a flattened list."
                 (:? :width "20")
                 (:? :in :window "foo::bar"))))
     (make-test-form form)))
+
+(define-test frame-phrase
+  (let ((frame-phrase ;(make-frame-phrase-test)
+         "WITH  attr-space CENTERED 4 * 3 columns CONTEXT-HELP context-help-file C:\\users\\mts\\desktop.hlp DEFAULT-BUTTON otherbutton drop-target 3 -4 down export widget-id foo FONT 3 / 2 FRAME floop_doo NO-INHERIT-BGCOLOR no-inherit-fgcolor KEEP-TAB-ORDER no-box NO-HIDE no-labels use-dict-exps NO-VALIDATE NO-AUTO-VALIDATE no-help no-underline overlay PAGE-TOP RETAIN 17 ROW foo::bar stream-io SCROLL foo scrollable SIDE-LABELS stream foo.bar THREE-D top-only USE-TEXT V6FRAME use-revvideo VIEW-AS DIALOG-BOX WIDTH 20 IN WINDOW foo::bar")
+        (expected (vertigo::pdict :attr-space t
+                                  :centered t
+                                  :num-columns (vertigo::make-op-node
+                                                :op "*"
+                                                :lhs (vertigo::make-int-value :val 4)
+                                                :rhs (vertigo::make-int-value :val 3))
+                                  :context-help t
+                                  :context-help-file ???
+                                  :default-button (vertigo::make-ident :name "otherbutton")
+                                  :drop-target t
+                                  :max-duplicate-records (vertigo::make-op-node
+                                                          :op "-"
+                                                          :lhs (vertigo::make-int-value :val 3)
+                                                          :rhs (vertigo::make-int-value :val 4))
+                                  :export t
+                                  :widget-id (vertigo::make-ident :name foo)
+                                  :font (vertigo::make-op-node :opt "/"
+                                                               :lhs (vertigo::make-int-value :val 3)
+                                                               :rhs (vertigo::make-int-value :val 2))
+                                  :frame-id (vertigo::make-ident :name "floop_doo")
+                                  :inherit-bgcolor nil
+                                  :inherit-fgcolor nil
+                                  :keep-tab-order t
+                                  :no-box t
+                                  :no-hide t
+                                  :no-labels t
+                                  :use-dict-help-strings t
+                                  :use-dict-validation-string t
+                                  :no-validate t
+                                  :no-auto-validate t
+                                  :no-help t
+                                  :no-underline t
+                                  :overlay t
+                                  :page-type :top
+                                  :scroll-retain (vertigo::make-int-value :val 17)
+                                  :row (vertigo::make-op-node :op "::"
+                                                              :lhs (vertigo::make-ident :name "foo")
+                                                              :rhs (vertigo::make-ident :name "bar"))
+                                  :scroll-by (vertigo::make-ident :name "foo")
+                                  :scrollable t
+                                  :side-labels t
+                                  :stream (vertigo::make-op-node :op "."
+                                                                 :lhs (vertigo::make-ident :name "foo")
+                                                                 :rhs (vertigo::make-ident :name "bar"))
+                                  :lickable t
+                                  :top-only t
+                                  :use-text t
+                                  :v6frame t
+                                  :v6-frame-opt :reverse-video
+                                  :dialog-box t
+                                  :width (vertigo::make-int-value :val 20)
+                                  :parent-window (vertigo::make-op-node :op "::"
+                                                                        :lhs (vertigo::make-ident :name "foo")
+                                                                        :rhs (vertigo::make-ident :name "bar")))))
+    (assert-equality #'cl-persist:equals expected (parse #'vertigo::frame-phrase? frame-phrase))))
