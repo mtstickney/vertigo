@@ -154,7 +154,7 @@
   (if (list-length-p 1 args)
       ;; Single argument doesn't need an extra checkpoint
       (meta-sexp:transform-grammar ret ctx t :rule
-                                   (list 'keyword? (first args)))
+                                   (cons 'keyword? args))
       (meta-sexp:transform-grammar ret ctx t :checkpoint
                                    (mapcar (lambda (form)
                                              `(:rule keyword? ,form))
