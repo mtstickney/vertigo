@@ -87,9 +87,8 @@
 ;; problem for e.g. cross-rule binds?
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :with-dict-binds)) &optional args)
-  (let ((*bind-keys* '())
-        (*dict-var* (gensym "DICT")))
-    (declare (special *bind-keys* *dict-var*))
+  (let ((*dict-var* (gensym "DICT")))
+    (declare (special *dict-var*))
     ;; First arg is reserved for future arguments
     (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint (cdr args))))
       `(let ((,*dict-var* (make-instance 'cl-persist:persistent-map)))
@@ -102,15 +101,11 @@
 ;; breaks, ',key stops being legit...
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :kbind)) &optional args)
-  (declare (special *bind-keys* *dict-var*))
-  (when (or (not (boundp '*bind-keys*))
-            (not (boundp '*dict-var*)))
+  (declare (special *dict-var*))
+  (when (not (boundp '*dict-var*))
     (error ":KBIND outside of :WITH-DICT-BINDS form"))
   (destructuring-bind (form key &optional (key-func (quote #'identity))) args
     (restart-case (progn
-                    (when (member key *bind-keys*)
-                      (error "Key ~S already bound in a :KBIND form~%" key))
-                    (push key *bind-keys*)
                     (let ((form-code (meta-sexp:transform-grammar ret ctx t form))
                           (result-var (gensym "RESULT")))
                       `(let ((,result-var ,form-code))
