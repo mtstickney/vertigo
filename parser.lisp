@@ -143,6 +143,14 @@
                                    args)))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :key-flags)) &optional args)
+  (meta-sexp:transform-grammar ret ctx t :and
+                               (loop for spec in args
+                                  collect (if (listp spec)
+                                              `(:opt (:kbind,(first spec) ,(second spec) (constantly t)))
+                                              `(:opt (:kbind ,spec ,spec (constantly t)))))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :opt)) &optional args)
   (if (list-length-p 1 args)
       ;; We assume a singleton form doesn't any needed checkpointing
