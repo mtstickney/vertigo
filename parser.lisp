@@ -139,8 +139,7 @@
   (declare (special *dict-var*))
   (meta-sexp:transform-grammar ret ctx t :checkpoint
                                (if (boundp '*dict-var*)
-                                   (meta-sexp:transform-grammar ret ctx t :dict-checkpoint
-                                                                args)
+                                   (list (cons :dict-checkpoint args))
                                    args)))
 
 (defmethod meta-sexp:transform-grammar
