@@ -182,13 +182,13 @@
     (:? #\:
         (:?
          (:icase (:or (:and "R"
-                            (:assign justify :right))
+                            (:assign justify ':right))
                       (:and "L"
-                            (:assign justify :left))
+                            (:assign justify ':left))
                       (:and "C"
-                            (:assign justify :center))
+                            (:assign justify ':center))
                       (:and "T"
-                            (:assign justify :trim)))))
+                            (:assign justify ':trim)))))
         (:? (:icase "U")
             (:or (:assign translatable nil) t))
         (:? (:assign reserved (:rule integer?)))))
