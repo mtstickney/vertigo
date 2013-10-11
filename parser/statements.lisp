@@ -91,8 +91,8 @@
 ;;; VIEW statement
 ;; Form no. 1
 (meta-sexp:defrule view-statement? () ()
-  (:with-binds
-      (:k "VIEW")
+  (:with-binds ()
+    (:k "VIEW")
     (:? (:checkpoint
          (:k "STREAM")
          (:bind (:rule expression?) stream)))
@@ -146,8 +146,8 @@
 ;;; USE statement
 ;; Form no. 1
 (meta-sexp:defrule use-statement? () ()
-  (:with-binds
-      (:k "USE")
+  (:with-binds ()
+    (:k "USE")
     (:bind (:rule expression?) expr)
     (:return (make-statement :type :use
                              :data (dict :env expr)))))

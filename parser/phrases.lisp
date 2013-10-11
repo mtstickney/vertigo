@@ -1154,8 +1154,8 @@
 
 ;; frame
 (meta-sexp:defrule frame-widget? () ()
-  (:with-binds
-      (:k "FRAME")
+  (:with-binds ()
+    (:k "FRAME")
     (:bind (:rule expression?) widget)
     (:return (make-widget :type :frame
                           :widget widget))))
@@ -1178,8 +1178,8 @@
 
 ;; column
 (meta-sexp:defrule column-widget? () ()
-  (:with-binds
-      (:bind (:rule expression?) item)
+  (:with-binds ()
+    (:bind (:rule expression?) item)
     (:k "IN" "BROWSE")
     (:bind (:rule expression?) parent)
     (:return (make-widget :type :browse-column
@@ -1188,17 +1188,17 @@
 
 ;; menu
 (meta-sexp:defrule menu-widget? () ()
-  (:with-binds
-      (:or (:k "MENU")
-           (:k "SUB-MENU"))
+  (:with-binds ()
+    (:or (:k "MENU")
+         (:k "SUB-MENU"))
     (:bind (:rule expression?) item)
     (:return (make-widget :type :menu
                           :widget item))))
 
 ;; menu-item
 (meta-sexp:defrule menu-item-widget? (&aux item parent) ()
-  (:with-binds
-      (:k "MENU-ITEM")
+  (:with-binds ()
+    (:k "MENU-ITEM")
     (:bind (:rule expression?) item)
     (:? (:checkpoint (:k "IN" "MENU")
                      (:bind (:rule expression?) parent)))
