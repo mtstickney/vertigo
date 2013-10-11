@@ -400,148 +400,87 @@
 
 ;;; Frame phrase
 ;; Form no. 1
-(meta-sexp:defrule rule3487? (&aux opt (opts (dict))) ()
-  (:with-binds
-      :with
-    (:opt :accum (:bind (:rule expression?) accum-expr))
-    (:opt (:bind (:rule at-phrase?) at-phrase))
-    (:opt (:bind (:or :attr-space
-                      :no-attr-space)
-                 attr-space-spec))
+(meta-sexp:defrule rule3487? () ()
+  (:with-dict-binds ()
+    :with
+    (:opt :accum (:kbind (:rule expression?) :accum))
+    (:opt (:kbind (:rule at-phrase?) :at))
+    (:opt (:kbind (:or :attr-space
+                       :no-attr-space)
+                  :attr-space
+                  (lambda (spec)
+                    (equalp spec "ATTR-SPACE"))))
     (:opt :cancel-button
-          (:bind (:rule expression?) cancel-button))
-    (:opt (:bind :centered centered))
-    (:opt (:bind (:rule frame-color-spec?) color))
+          (:kbind (:rule expression?) :cancel-button))
+    (:opt (:kbind :centered :centered (constantly t)))
+    (:opt (:kbind (:rule frame-color-spec?) :color))
     ;; NOTE: the expression used here gets re-evaluated whenever the
     ;; frame comes into view, should be a closure
-    (:opt :column  (:bind (:rule expression?) column))
-    (:opt (:assign opt (:rule expression?))
-          :columns
-          (:bind opt columns))
-    (:opt (:bind :context-help context-help))
+    (:opt :column  (:kbind (:rule expression?) :column))
+    (:opt (:kbind (:rule expression?) :num-columns)
+          :columns)
+    (:opt (:kbind :context-help :context-help (constantly t)))
     (:opt :context-help-file
-          (:bind (:rule expression?) context-help-file))
+          (:kbind (:rule expression?) :context-help-file))
     (:opt :default-button
-          (:bind (:rule expression?) default-button))
-    (:opt (:bind :drop-target drop-target))
-    (:opt (:? (:bind (:rule expression?) max-duplicate-records))
-          (:bind :down down-frame))
-    (:opt (:bind :export export))
+          (:kbind (:rule expression?) :default-button))
+    (:opt (:kbind :drop-target :drop-target (constantly t)))
+    (:opt (:or (:checkpoint* (:kbind (:rule expression?) :max-duplicate-records)
+                             (:kbind :down :down-frame (constantly t)))
+               (:checkpoint* (:kbind :down :down-frame (constantly t)))))
+    (:opt (:kbind :export :export (constantly t)))
     (:opt :widget-id
-          (:bind (:rule expression?) widget-id))
-    (:opt :font
-          (:bind (:rule expression?) font))
-    (:opt :frame
-          (:bind (:rule expression?) frame))
-    (:opt (:bind (:or :inherit-bgcolor
-                      :no-inherit-bgcolor)
-                 inherit-bgcolor))
-    (:opt (:bind (:or :inherit-fgcolor
-                      :no-inherit-fgcolor)
-                 inherit-fgcolor))
-    (:opt (:bind :keep-tab-order keep-tab-order))
-    (:opt (:bind :no-box no-box))
-    (:opt (:bind :no-hide no-hide))
-    (:opt (:bind :no-labels no-labels))
-    (:opt (:bind :use-dict-exps use-dict-exps))
-    (:opt (:bind :no-validate no-validate))
-    (:opt (:bind :no-auto-validate no-auto-validate))
-    (:opt (:bind :no-help no-help))
-    (:opt (:bind :no-underline no-underline))
-    (:opt (:bind :overlay overlay))
-    (:opt (:bind (:or (:and :page-bottom ':bottom)
-                      (:and :page-top ':top))
-                 page-type))
+          (:kbind (:rule expression?) :widget-id))
+    (:opt :font (:kbind (:rule expression?) :font))
+    (:opt :frame (:kbind (:rule expression?) :frame-id))
+    (:opt (:kbind (:or :inherit-bgcolor
+                       :no-inherit-bgcolor)
+                  :inherit-bgcolor
+                  (lambda (o)
+                    (equalp o "INHERIT-BGCOLOR"))))
+    (:opt (:kbind (:or :inherit-fgcolor
+                       :no-inherit-fgcolor)
+                  :inherit-fgcolor
+                  (lambda (o)
+                    (equalp o "INHERIT-FGCOLOR"))))
+    (:opt (:kbind :keep-tab-order :keep-tab-order (constantly t)))
+    (:opt (:kbind :no-box :no-box (constantly t)))
+    (:opt (:kbind :no-hide :no-hide (constantly t)))
+    (:opt (:kbind :no-labels :no-labels (constantly t)))
+    (:opt (:kbind :use-dict-exps :use-dict-help-strings (constantly t))
+          (:kbind t :use-dict-validation-strings))
+    (:opt (:kbind :no-validate :no-validate (constantly t)))
+    (:opt (:kbind :no-auto-validate :no-auto-validate (constantly t)))
+    (:opt (:kbind :no-help :no-help (constantly t)))
+    (:opt (:kbind :no-underline :no-underline (constantly t)))
+    (:opt (:kbind :overlay :overlay (constantly t)))
+    (:opt (:kbind (:or (:and :page-bottom ':bottom)
+                       (:and :page-top ':top))
+                  :page-type))
     (:opt :retain
-          (:bind (:rule expression?) retain-number))
+          (:kbind (:rule expression?) :scroll-retain))
     (:opt :row
-          (:bind (:rule expression?) row))
-    (:opt (:bind (:or :screen-io
-                      :stream-io)
-                 io-type))
-    (:opt :scroll
-          (:bind (:rule expression?) scroll-by))
-    (:opt (:bind :scrollable scrollable))
-    (:opt (:bind :scrollable side-labels))
-    (:opt (:bind (:rule size-phrase?) size))
-    (:opt :stream
-          (:bind (:rule expression?) stream))
-    (:opt (:bind :three-d lickable))
-    (:opt (:bind (:rule title-phrase?) title-phrase))
-    (:opt (:bind :top-only top-only))
-    (:opt (:bind :use-text use-text))
-    (:opt (:bind :v6frame v6frame)
-          (:opt (:bind (:or (:and :use-revvideo ':reverse-video)
-                            (:and :use-underline ':underline))
-                       v6-frame-opt)))
-    (:opt (:bind (:k "VIEW-AS" "DIALOG-BOX") dialog-box))
-    (:opt :width (:bind (:rule expression?) width))
+          (:kbind (:rule expression?) :row))
+    (:opt (:kbind (:or (:and :screen-io ':screen)
+                       (:and :stream-io ':stream))
+                  :io-type))
+    (:opt :scroll (:kbind (:rule expression?) :scroll-by))
+    (:opt (:kbind :scrollable :scrollable (constantly t)))
+    (:opt (:kbind :side-labels :side-labels (constantly t)))
+    (:opt (:kbind (:rule size-phrase?) :size))
+    (:opt :stream (:kbind (:rule expression?) :stream))
+    (:opt (:kbind :three-d :lickable))
+    (:opt (:kbind (:rule title-phrase?) :title))
+    (:opt (:kbind :top-only :top-only (constantly t)))
+    (:opt (:kbind :use-text :use-text (constantly t)))
+    (:opt (:kbind :v6frame :v6frame (constantly t))
+          (:opt (:kbind (:or (:and :use-revvideo ':reverse-video)
+                             (:and :use-underline ':underline))
+                        :v6-frame-opt)))
+    (:opt (:kbind (:k "VIEW-AS" "DIALOG-BOX") :dialog-box (constantly t)))
+    (:opt :width (:kbind (:rule expression?) :width))
     (:opt (:k "IN" "WINDOW")
-          (:bind (:rule expression?) parent-window))
-
-    (macrolet ((dset-if ((dict) &rest args)
-                 (alexandria:with-gensyms (dict-var)
-                   `(let ((,dict-var ,dict))
-                      ,@(loop for cell on args by #'cddr
-                           collect (alexandria:with-gensyms (val-var key-var)
-                                     `(let ((,val-var ,(first cell))
-                                            (,key-var ,(second cell)))
-                                        (when ,val-var
-                                          (setf (gethash ,key-var ,dict-var) ,val-var)))))
-                      t))))
-      (dset-if (opts)
-               :accum accum-expr
-               :at at-phrase
-               :attr-space (equalp attr-space-spec "ATTR-SPACE")
-               :cancel-button cancel-button
-               :centered (and centered t)
-               :color color
-               :column column
-               :num-columns columns
-               :context-help (and context-help t)
-               :context-help-file context-help-file
-               :default-button default-button
-               :drop-target (and drop-target t)
-               :max-duplicate-records max-duplicate-records
-               :down-frame (and down-frame t)
-               :export (and export t)
-               :widget-id widget-id
-               :font font
-               :frame-id frame
-               :keep-tab-order keep-tab-order
-               :box (not no-box)
-               :hide (not no-hide)
-               :labels (not no-labels)
-               :use-dict-help-strings use-dict-exps
-               :use-dict-validation-strings use-dict-exps
-               :validate (not no-validate)
-               :auto-validate (not no-auto-validate)
-               :help (not no-help)
-               :underline (not no-underline)
-               :overlay overlay
-               :page-type page-type
-               :scroll-retain retain-number
-               :row row
-               :io-type (if (equalp io-type "STREAM-IO") :stream :screen)
-               :scroll-by scroll-by
-               :scrollable (and scrollable t)
-               :side-labels (and side-labels t)
-               :size size
-               :stream stream
-               :lickable (and lickable t)
-               :title title-phrase
-               :top-only (and top-only t)
-               :use-text (and use-text t)
-               :v6frame (and v6frame t)
-               :v6-frame-opt v6-frame-opt
-               :dialog-box (and dialog-box t)
-               :width width
-               :parent-window parent-window)
-      (when inherit-bgcolor
-        (setf (gethash :inherit-bgcolor opts) (equalp inherit-bgcolor "INHERIT-BGCOLOR")))
-      (when inherit-fgcolor
-        (setf (gethash :inherit-fgcolor opts) (equalp inherit-fgcolor "INHERIT-FGCOLOR"))))
-    opts))
+          (:kbind (:rule expression?) :parent-window))))
 
 ;; color-specification
 (meta-sexp:defrule frame-color-spec? (&aux opt (opts (dict))) ()
