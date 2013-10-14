@@ -177,6 +177,10 @@
       (meta-sexp:transform-grammar ret ctx t :k (list (symbol-name directive)))
       directive))
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :eof)) &optional args)
+  (meta-sexp:transform-grammar ret ctx t :not (list '(:type character))))
+
 (deftype whitespace-char ()
   '(or (eql #\Tab)
     (eql #\Newline)
