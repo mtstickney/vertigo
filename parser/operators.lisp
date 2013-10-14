@@ -277,11 +277,12 @@
        (:rule token :date)
        (:rule token :number)))
 
+;; TODO: does funcall really have to go in here? (no. no it does not.)
 (meta-sexp:defrule atom? () ()
-  (:or (:rule literal?)
-       (:rule token :buffer-field)
-       (:rule token :identifier)
-       (:rule token :funcall)))
+  (:or (:rule token :string)
+       (:rule token :number)
+       (:rule token :symbol)
+       (:rule function-call?)))
 
 (defun right-binding-power (op arity)
   (cond
@@ -327,7 +328,7 @@
   (:or
    ;; Unary operator followed by expression
    (:checkpoint
-    (:assign op (:rule token :operator))
+    (:assign op (:rule operator?))
     (or (equalp op "+")
         (equalp op "-")
         (equalp op "NOT"))
@@ -339,36 +340,35 @@
                      "(" (:assign expr (:rule expression?)) ")")
          (:return expr))))
 
-(meta-sexp:defrule operator? (&aux match) ()
+(meta-sexp:defrule operator? (&aux val match) ()
   (:with-stored-match (match)
-    ;; It's important that ops that are prefixes of other ops come afterwards
-    (:or "::"
-         ":"
-         "/"
-         "*"
-         "+"
-         "-"
-         "["
-         "<>"
-         "<="
-         ">="
-         "<"
-         ">"
-         "="
-         (:and (:or
-                (:icase "MODULO")
-                (:icase "NE")
-                (:icase "LE")
-                (:icase "GE")
-                (:icase "LT")
-                (:icase "GT")
-                (:icase "EQ")
-                (:icase "NOT")
-                (:icase "AND")
-                (:icase "OR"))
-               ;; non-symbolic operators must be followed by
-               ;; non-identifier character
-               (:not (:type identifier-char))))))
+    (:assign val (:rule token :symbol))
+    (let ((name (symbol-name val)))
+      (meta-sexp:meta
+       (:with-context (name)
+         (:whole-match (:or "::"
+                            ":"
+                            "/"
+                            "*"
+                            "+"
+                            "-"
+                            "["
+                            "<>"
+                            "<="
+                            ">="
+                            "<"
+                            ">"
+                            "="
+                            (:icase "MODULO")
+                            (:icase "NE")
+                            (:icase "LE")
+                            (:icase "GE")
+                            (:icase "LT")
+                            (:icase "GT")
+                            (:icase "EQ")
+                            (:icase "NOT")
+                            (:icase "AND")
+                            (:icase "OR"))))))))
 
 (meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
   (:assign lhs (:rule unary-value?))
