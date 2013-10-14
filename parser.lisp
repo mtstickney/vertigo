@@ -177,13 +177,15 @@
       (meta-sexp:transform-grammar ret ctx t :k (list (symbol-name directive)))
       directive))
 
+(deftype whitespace-char ()
+  '(or (eql #\Tab)
+    (eql #\Newline)
+    (eql #\Linefeed)
+    (eql #\Page)
+    (eql #\Return)
+    (eql #\Space)))
+
 ;; TODO: Not all of these character names are portable, use codes for
 ;; everything but #\Newline and #\Space
 (meta-sexp:defrule whitespace? () ()
-  (:+ (:or (:type meta-sexp:white-space?)
-           #\Tab
-           #\Newline
-           #\Linefeed
-           #\Page
-           #\Return
-           #\Space)))
+  (:+ (:type whitespace-char)))
