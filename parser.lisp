@@ -178,6 +178,16 @@
       directive))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :whole-match)) &optional args)
+  "Transform for matching a form that must consume all remaining input."
+  (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint args))
+        (post-code (meta-sexp:transform-grammar ret ctx t :not
+                                                (list '(:type character))))
+        (result-var (gensym "RESULT")))
+    `(let ((,result-var ,body-code))
+       (and ,post-code ,result-var))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :eof)) &optional args)
   (meta-sexp:transform-grammar ret ctx t :not (list '(:type character))))
 
