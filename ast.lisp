@@ -4,6 +4,9 @@
   (type)
   (value))
 
+(defstruct symb
+  (name))
+
 (defstruct int-value
   (val))
 
