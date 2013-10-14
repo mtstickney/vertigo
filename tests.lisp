@@ -406,17 +406,17 @@
                   :op "-"
                   :lhs (vertigo::make-op-node
                         :op "-"
-                        :lhs (vertigo::make-ident :name "foo")
-                        :rhs (vertigo::make-ident :name "bar"))
-                  :rhs (vertigo::make-ident :name "baz"))
+                        :lhs (vertigo::make-symb :name "foo")
+                        :rhs (vertigo::make-symb :name "bar"))
+                  :rhs (vertigo::make-symb :name "baz"))
                  (parse #'vertigo::expression? "foo - bar - baz"))
   (assert-equalp (vertigo::make-op-node
                   :op "AND"
-                  :lhs (vertigo::make-ident :name "foo")
+                  :lhs (vertigo::make-symb :name "foo")
                   :rhs (vertigo::make-op-node
                         :op "AND"
-                        :lhs (vertigo::make-ident :name "bar")
-                        :rhs (vertigo::make-ident :name "baz")))
+                        :lhs (vertigo::make-symb :name "bar")
+                        :rhs (vertigo::make-symb :name "baz")))
                  (parse #'vertigo::expression? "foo AND bar AND baz")))
 
 (define-test operator-precedence
@@ -981,19 +981,19 @@ replaced by NIL, as if traversing a flattened list."
                                                 :lhs (vertigo::make-int-value :val 4)
                                                 :rhs (vertigo::make-int-value :val 3))
                                   :context-help t
-                                  :context-help-file ???
-                                  :default-button (vertigo::make-ident :name "otherbutton")
+                                  :context-help-file (vertigo::make-symb :name "C:\\users\\mts\\desktop.hlp")
+                                  :default-button (vertigo::make-symb :name "otherbutton")
                                   :drop-target t
                                   :max-duplicate-records (vertigo::make-op-node
                                                           :op "-"
                                                           :lhs (vertigo::make-int-value :val 3)
                                                           :rhs (vertigo::make-int-value :val 4))
                                   :export t
-                                  :widget-id (vertigo::make-ident :name foo)
-                                  :font (vertigo::make-op-node :opt "/"
+                                  :widget-id (vertigo::make-symb :name "foo")
+                                  :font (vertigo::make-op-node :op "/"
                                                                :lhs (vertigo::make-int-value :val 3)
                                                                :rhs (vertigo::make-int-value :val 2))
-                                  :frame-id (vertigo::make-ident :name "floop_doo")
+                                  :frame-id (vertigo::make-symb :name "floop_do")
                                   :inherit-bgcolor nil
                                   :inherit-fgcolor nil
                                   :keep-tab-order t
@@ -1010,14 +1010,14 @@ replaced by NIL, as if traversing a flattened list."
                                   :page-type :top
                                   :scroll-retain (vertigo::make-int-value :val 17)
                                   :row (vertigo::make-op-node :op "::"
-                                                              :lhs (vertigo::make-ident :name "foo")
-                                                              :rhs (vertigo::make-ident :name "bar"))
-                                  :scroll-by (vertigo::make-ident :name "foo")
+                                                              :lhs (vertigo::make-symb :name "foo")
+                                                              :rhs (vertigo::make-symb "bar"))
+                                  :scroll-by (vertigo::make-symb :name "foo")
                                   :scrollable t
                                   :side-labels t
                                   :stream (vertigo::make-op-node :op "."
-                                                                 :lhs (vertigo::make-ident :name "foo")
-                                                                 :rhs (vertigo::make-ident :name "bar"))
+                                                                 :lhs (vertigo::make-symb :name "foo")
+                                                                 :rhs (vertigo::make-symb :name "bar"))
                                   :lickable t
                                   :top-only t
                                   :use-text t
@@ -1026,6 +1026,6 @@ replaced by NIL, as if traversing a flattened list."
                                   :dialog-box t
                                   :width (vertigo::make-int-value :val 20)
                                   :parent-window (vertigo::make-op-node :op "::"
-                                                                        :lhs (vertigo::make-ident :name "foo")
-                                                                        :rhs (vertigo::make-ident :name "bar")))))
+                                                                        :lhs (vertigo::make-symb :name "foo")
+                                                                        :rhs (vertigo::make-symb :name "bar")))))
     (assert-equality #'cl-persist:equals expected (parse #'vertigo::frame-phrase? frame-phrase))))

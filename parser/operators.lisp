@@ -255,7 +255,7 @@
              (:with-context (val)
                (:or (:and (:assign item (:rule numeric-literal?))
                           (make-token :type :number :value item))
-                    (make-token :type :symbol :value (make-symbol val)))))))
+                    (make-token :type :symbol :value (make-symb :name val)))))))
 
 (meta-sexp:defrule token (type &aux tok) ()
   (:assign tok (:rule scanner))
