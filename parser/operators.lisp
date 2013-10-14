@@ -249,7 +249,8 @@
   (:? (:rule whitespace?))
   (:or (:rule non-symbol-token?)
        (:and (:assign val (:with-stored-match (match)
-                            (:+ (:not (:rule non-symbol-token?))
+                            (:+ (:not (:or (:rule non-symbol-token?)
+                                           (:type whitespace-char)))
                                 (:type character))))
              ;; See if the symbol parses as numeric
              (:with-context (val)
