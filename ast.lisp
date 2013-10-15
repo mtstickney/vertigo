@@ -10,6 +10,9 @@
 (defstruct int-value
   (val))
 
+(defstruct statement
+  (parts))
+
 ;;; DECIMAL types are represented as rationals (probably not in
 ;;; simplified form)
 (defstruct rational-value

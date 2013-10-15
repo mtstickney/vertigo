@@ -393,6 +393,13 @@
              (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
   (:return  lhs))
 
+(meta-sexp:defrule statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
+  (:+ (:not (:rule token :dot-terminator))
+      (:assign item (:rule expression?))
+      (:list-push item parts))
+  (:rule token :dot-terminator)
+  (:return (make-statement :parts (reverse parts))))
+
 ;;; + Unary positive operator
 ;; Form no. 1
 (meta-sexp:defrule rule3331? () ()
