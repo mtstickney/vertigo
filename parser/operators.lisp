@@ -346,7 +346,7 @@
 (meta-sexp:defrule operator? (&aux val match) ()
   (:with-stored-match (match)
     (:assign val (:rule token :symbol))
-    (let ((name (symbol-name val)))
+    (let ((name (symb-name val)))
       (meta-sexp:meta
        (:with-context (name)
          (:whole-match (:or "::"
