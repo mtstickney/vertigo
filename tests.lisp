@@ -30,33 +30,23 @@
 
 ;;; Decimal literal tests
 (define-test decimal-literal-zero-decimal
-  (assert-equalp (vertigo::make-rational-value :int 123
-                                               :frac 0
-                                               :decimals 1)
+  (assert-equalp (vertigo::make-rational-value :val 123/1)
                  (parse #'vertigo::decimal-literal? "123.0")))
 
 (define-test decimal-literal-leading-zero-decimal
-  (assert-equalp (vertigo::make-rational-value :int 123
-                                               :frac 567
-                                               :decimals 4)
+  (assert-equalp (vertigo::make-rational-value :val 1230567/10000)
                  (parse #'vertigo::decimal-literal? "123.0567")))
 
 (define-test decimal-literal-trailing-zero-decimal
-  (assert-equalp (vertigo::make-rational-value :int 123
-                                               :frac 56700
-                                               :decimals 6)
+  (assert-equalp (vertigo::make-rational-value :val 1230567/10000)
                  (parse #'vertigo::decimal-literal? "123.056700")))
 
 (define-test decimal-only-decimal-literal
-  (assert-equalp (vertigo::make-rational-value :int 0
-                                               :frac 567
-                                               :decimals 4)
+  (assert-equalp (vertigo::make-rational-value :val 567/10000)
                  (parse #'vertigo::decimal-literal? ".0567")))
 
 (define-test decimal-only-trailing-zero-decimal-literal
-  (assert-equalp (vertigo::make-rational-value :int 0
-                                               :frac 56700
-                                               :decimals 6)
+  (assert-equalp (vertigo::make-rational-value :val 567/10000)
                  (parse #'vertigo::decimal-literal? ".056700")))
 
 (define-test integral-decimal-end-of-statement
@@ -68,7 +58,7 @@
                  (parse #'vertigo::numeric-literal? "123")))
 
 (define-test decimal-numeric-literal
-  (assert-equalp (vertigo::make-rational-value :int 123 :frac 456 :decimals 3)
+  (assert-equalp (vertigo::make-rational-value :val 123456/1000)
                  (parse #'vertigo::numeric-literal? "123.456")))
 
 (define-test date-literal
