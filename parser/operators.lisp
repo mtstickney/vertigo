@@ -46,9 +46,8 @@
     (multiple-value-bind (num digits) (meta-sexp:meta (:rule integer?))
       (and num
            (meta-sexp:meta (:return (make-rational-value
-                                     :int (or numerator 0)
-                                     :frac num
-                                     :decimals digits)))))))
+                                     :val (+ (or numerator 0)
+                                             (/ num (expt 10 digits))))))))))
 
 (meta-sexp:defrule numeric-literal? (&aux match number) ()
   (:with-stored-match (match)
