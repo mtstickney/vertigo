@@ -26,11 +26,13 @@
                    (incf digits)))
   (:return result digits))
 
-(meta-sexp:defrule integer-literal? (&aux match (result 0)) ()
+(meta-sexp:defrule integer-literal? (&aux match (result 0) (sign 1)) ()
   (:with-stored-match (match)
+    (:? (:or (:and #\- (setf sign -1))
+             #\+))
     (:assign result (:or (:rule hex-integer?)
                          (:rule integer?))))
-  (:return (make-int-value :val result)))
+  (:return (make-int-value :val (* result sign))))
 
 (defun digits (n &optional (base 10))
   (check-type n integer)
@@ -39,15 +41,17 @@
 
 ;; Note: decimal literal doesn't do integral literals (type promotion
 ;; handles that)
-(meta-sexp:defrule decimal-literal? (&aux match numerator) ()
+(meta-sexp:defrule decimal-literal? (&aux match numerator (sign 1)) ()
   (:with-stored-match (match)
+    (:? (:or (:and #\- (setf sign -1))
+             #\+))
     (:? (:assign numerator (:rule integer?)))
     #\.
     (multiple-value-bind (num digits) (meta-sexp:meta (:rule integer?))
       (and num
            (meta-sexp:meta (:return (make-rational-value
-                                     :val (+ (or numerator 0)
-                                             (/ num (expt 10 digits))))))))))
+                                     :val (* sign (+ (or numerator 0)
+                                                     (/ num (expt 10 digits)))))))))))
 
 (meta-sexp:defrule numeric-literal? (&aux match number) ()
   (:with-stored-match (match)
