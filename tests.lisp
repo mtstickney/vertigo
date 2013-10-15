@@ -432,9 +432,7 @@
                               :op "+"
                               :lhs (vertigo::make-int-value :val 1)
                               :rhs (vertigo::make-int-value :val 2))
-                        :rhs (vertigo::make-unary-op-node
-                              :op "-"
-                              :val (vertigo::make-int-value :val 3)))
+                        :rhs (vertigo::make-int-value :val -3))
                   :rhs (vertigo::make-op-node
                         :op "-"
                         :lhs (vertigo::make-int-value :val 4)
