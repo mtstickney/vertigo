@@ -160,6 +160,7 @@
                                          quote
                                          (justify :none)
                                          reserved
+                                         options-p
                                          (translatable t))
     ()
   (:with-stored-match (match)
@@ -182,19 +183,24 @@
                     (:char-push char str)))))
     ;; Accept the quote char
     (eql (meta-sexp:meta (:type character)) quote)
-    (:? #\:
-        (:?
-         (:icase (:or (:and "R"
-                            (:assign justify ':right))
-                      (:and "L"
-                            (:assign justify ':left))
-                      (:and "C"
-                            (:assign justify ':center))
-                      (:and "T"
-                            (:assign justify ':trim)))))
-        (:? (:icase "U")
-            (:or (:assign translatable nil) t))
-        (:? (:assign reserved (:rule integer?)))))
+    (:?
+     (:checkpoint #\:
+                  (:?
+                   (:icase (:or (:and "R"
+                                      (:assign justify ':right))
+                                (:and "L"
+                                      (:assign justify ':left))
+                                (:and "C"
+                                      (:assign justify ':center))
+                                (:and "T"
+                                      (:assign justify ':trim))))
+                   (:assign options-p t))
+                  (:? (:icase "U")
+                      (:or (:assign translatable nil) t)
+                      (:assign options-p t))
+                  (:? (:assign reserved (:rule integer?))
+                      (:assign options-p t))
+                  options-p)))
   (:return (make-string-value :str str
                               :justify justify
                               :reserved reserved
