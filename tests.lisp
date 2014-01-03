@@ -294,7 +294,7 @@
                     :day 3
                     :year 900)
                    (parse #'vertigo::literal? "10/3/900"))
-    (assert-equalp (vertigo::make-rational-value :int 4 :frac 87 :decimals 3)
+    (assert-equalp (vertigo::make-rational-value :val 4087/1000)
                    (parse #'vertigo::literal? "4.087"))
     (assert-equalp (vertigo::make-int-value :val 123)
                    (parse #'vertigo::literal? "123"))))
