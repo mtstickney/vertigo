@@ -7,16 +7,17 @@
 (defstruct symb
   (name))
 
-(defstruct int-value
+(defstruct number-value
   (val))
+
+(defstruct (int-value (:include number-value)))
 
 (defstruct statement
   (parts))
 
 ;;; DECIMAL types are represented as rationals (probably not in
 ;;; simplified form)
-(defstruct rational-value
-  (val))
+(defstruct (rational-value (:include number-value)))
 
 (defstruct date-value
   (month)
