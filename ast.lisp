@@ -75,7 +75,3 @@
   (type)
   (widget)
   (parent))
-
-(defstruct statement
-  (type)
-  (data (dict)))
