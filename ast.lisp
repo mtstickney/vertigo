@@ -44,6 +44,9 @@
   (translatable t)
   (reserved))
 
+(defstruct comment
+  (str))
+
 (defstruct boolean-value
   (val))
 

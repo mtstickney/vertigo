@@ -11,72 +11,142 @@
 ;; minus-expression = add-expression '-' add-expression
 ;;                  | add-expression
 
-(meta-sexp:defrule integer? (&aux (digits 0) (result 0) d) ()
-  (:+ (:checkpoint (:assign d (:type meta-sexp:digit?))
-                   (setf result (+ (* result 10) (digit-char-p d)))
-                   (incf digits)))
-  (:return result digits))
+(deftype terminating-char () '(satisfies terminating-char-p))
 
-(meta-sexp:defrule hex-integer? (&aux (digits 0) (result 0) char d) ()
+(meta-sexp:defrule parse-string? (quote-char &aux match
+                                             (str (meta-sexp:make-char-accum))
+                                             (code 0)
+                                             digit
+                                             char
+                                             string-args
+                                             reserved
+                                             options-p)
+    ()
+  (:with-stored-match (match)
+    (:type character) ; will be (eql quote-char)
+    (:* (:or (:and #\~ (:or (:and #\n (:char-push #\Newline str))
+                            (:and #\t (:char-push #\Tab str))
+                            (:and #\r (:char-push #\Return str))
+                            (:and #\E (:char-push (code-char #o033) str))
+                            (:and #\b (:char-push #\Backspace str))
+                            (:and #\f (:char-push (code-char #o014) str))
+                            (:and (:n-times 3 (:assign digit (:type meta-sexp:digit?))
+                                            ;; Octal digits
+                                            (:assign code (+ (* code 8) (digit-char-p digit))))
+                                  (:char-push (code-char code) str))
+                            (:char-push str)))
+             ;; Any unescaped char that isn't the quote
+             (:checkpoint
+              (:and (:assign char (:type character))
+                    (:not (eql char quote-char))
+                    (:char-push char str)))))
+    ;; Accept the quote char
+    (eql (meta-sexp:meta (:type character)) quote-char)
+    (:?
+     (:checkpoint #\:
+                  (:?
+                   (:icase (:or (:and "R"
+                                      (setf (getf string-args :justify) :right))
+                                (:and "L"
+                                      (setf (getf string-args :justify) :left))
+                                (:and "C"
+                                      (setf (getf string-args :justify) :center))
+                                (:and "T"
+                                      (setf (getf string-args :justify) :trim))))
+                   (:assign options-p t))
+                  (:? (:icase "U")
+                      (:or (setf (getf string-args :translatable) nil) t)
+                      (:assign options-p t))
+                  (:? (:assign reserved (:rule integer?))
+                      (setf (getf string-args :reserved) reserved)
+                      (:assign options-p t))
+                  options-p
+                  ;; Must be followed by a terminating character,
+                  ;; ignore these options otherwise
+                  (:and (:not (:rule terminating-char?))
+                        (setf string-args '())
+                        nil))))
+  (apply #'make-string-value :str str (and options-p string-args)))
+
+; "Run of digits in base BASE. Return an INT-VALUE of the integer and the number of digits as multiple values."
+(meta-sexp:defrule digits? (&optional (base 10) &aux char (digits 0) (result 0) d) ()
+  (:+ (:checkpoint (:assign char (:type character))
+                   (:assign d (digit-char-p char base))
+                   (setf result (+ (* result base) d))
+                   (incf digits)))
+  (:return (make-int-value :val result) digits))
+
+; "Base-10 digits followed by a symbol-terminating character."
+(meta-sexp:defrule integer? (&optional (base 10) &aux symb) ()
+  (:assign symb (:rule symbol?))
+  (:with-context ((symb-name symb))
+    (multiple-value-bind (result digits) (meta-sexp:meta (:rule digits? base))
+      (values)
+      (meta-sexp:meta
+       (:eof)
+       (:return result digits)))))
+
+; "A hexadecimal integer literal. '0x' followed by digits base 16 followed by a symbol-terminating character."
+(meta-sexp:defrule hex-integer? () ()
   #\0
   (:icase #\x)
-  (:+ (:checkpoint (:assign char (:type character))
-                   (:assign d (digit-char-p char 16))
-                   (setf result (+ (* result 16) d))
-                   (incf digits)))
-  (:return result digits))
-
-(meta-sexp:defrule integer-literal? (&aux match (result 0) (sign 1)) ()
-  (:with-stored-match (match)
-    (:? (:or (:and #\- (setf sign -1))
-             #\+))
-    (:assign result (:or (:rule hex-integer?)
-                         (:rule integer?))))
-  (:return (make-int-value :val (* result sign))))
-
-(defun digits (n &optional (base 10))
-  (check-type n integer)
-  (if (= n 0)
-      (1+ (floor (log n base)))))
+  (:rule integer? 16))
 
 ;; Note: decimal literal doesn't do integral literals (type promotion
 ;; handles that)
 (meta-sexp:defrule decimal-literal? (&aux match numerator (sign 1)) ()
   (:with-stored-match (match)
-    (:? (:or (:and #\- (setf sign -1))
-             #\+))
     (:? (:assign numerator (:rule integer?)))
     #\.
     (multiple-value-bind (num digits) (meta-sexp:meta (:rule integer?))
       (and num
            (meta-sexp:meta (:return (make-rational-value
-                                     :val (* sign (+ (or numerator 0)
-                                                     (/ num (expt 10 digits)))))))))))
+                                     :val (* sign (+ (if numerator (int-value-val numerator) 0)
+                                                     (/ (int-value-val num) (expt 10 digits)))))))))))
 
-(meta-sexp:defrule numeric-literal? (&aux match number) ()
-  (:with-stored-match (match)
-    (:assign number
-             (:or (:rule decimal-literal?)
-                  (:rule integer-literal?))))
-  (:return number))
+(meta-sexp:defrule number? () ()
+  (:or (:rule hex-integer?)
+       (:rule decimal-literal?)
+       (:rule integer?)))
 
-(meta-sexp:defrule date-literal? (&aux match month day year) ()
+;; Too low-level, defer to signed-number
+(meta-sexp:defrule signed-number? (&aux (sign 1) num) ()
+  (:? (:or (:and #\- (setf sign -1))
+           #\+))
+  (:assign num (:rule number?))
+  (let ((new-num (copy-number-value num)))
+    (setf (number-value-val num)
+          (* (number-value-val num) sign))
+    new-num))
+
+(meta-sexp:defrule parse-number (char) ()
+  (:rule signed-number?))
+
+(meta-sexp:defrule test () ()
+  (values))
+
+(meta-sexp:defrule test2 (&aux thing) ()
+  (:or (:assign thing (:rule test)) t)
+  (:return thing))
+
+(meta-sexp:defrule date-literal? (&aux symb match month day year) ()
   (:with-stored-match (match)
-    (:assign month (:rule integer?))
-    #\/
-    (:assign day (:rule integer?))
-    #\/
-    (:assign year (:rule integer?)))
-  (:return (make-date-value :month month
-                            :day day
-                            :year year)))
+    (:assign symb (:rule symbol?))
+    (:with-context ((symb-name symb))
+      (:whole-match
+       (:assign month (:rule digits?))
+       #\/
+       (:assign day (:rule digits?))
+       #\/
+       (:assign year (:rule digits?)))))
+  (:return (make-date-value :month (int-value-val month)
+                            :day (int-value-val day)
+                            :year (int-value-val year))))
 
 (meta-sexp:defrule iso8601-time-tz-literal? (&aux match
                                                   hour
                                                   min
                                                   sec
-                                                  sec-frac
-                                                  (sec-decimals 0)
                                                   tz-hr
                                                   tz-min)
     ()
@@ -85,11 +155,8 @@
     #\:
     (:assign min (:rule integer?))
     (:? #\:
-        (:assign sec (:rule integer?))
-        (:? #\.
-            (multiple-value-bind (n digits) (meta-sexp:meta (:rule integer?))
-              (setf sec-frac n
-                    sec-decimals digits))))
+        (:assign sec (:or (:rule decimal-literal?)
+                          (:rule integer?))))
     ;; TODO: we're making tz-min optional here, which is probably wrong
     (:? #\+
         (:assign tz-hr (:rule integer?))
@@ -98,8 +165,6 @@
   (:return (make-time-value :hour hour
                             :minute min
                             :second (or sec 0)
-                            :sec-frac (or sec-frac 0)
-                            :sec-decimals sec-decimals
                             :tz-hr (or tz-hr 0)
                             :tz-min (or tz-min 0)
                             ;; Note the conversion to t/nil
@@ -128,21 +193,22 @@
                                 :time time-part)))
 
 (meta-sexp:defrule string-datetime-tz-literal? (&aux match
+                                                     str
                                                      month
                                                      day
                                                      year
                                                      time-part)
     ()
   (:with-stored-match (match)
-    #\"
-    (:assign month (:rule integer?))
-    #\-
-    (:assign day (:rule integer?))
-    #\-
-    (:assign year (:rule integer?))
-    (:+ (:type meta-sexp:space?))
-    (:assign time-part (:rule iso8601-time-tz-literal?))
-    #\")
+    (:assign str (:rule string-literal?))
+    (:with-context (str)
+      (:assign month (:rule integer?))
+      #\-
+      (:assign day (:rule integer?))
+      #\-
+      (:assign year (:rule integer?))
+      (:rule whitespace?)
+      (:assign time-part (:rule iso8601-time-tz-literal?))))
   (:return (make-datetime-value :date (make-date-value :year year
                                                        :month month
                                                        :day day)
@@ -152,59 +218,189 @@
   (:or (:rule string-datetime-tz-literal?)
        (:rule iso8601-datetime-tz-literal?)))
 
-(meta-sexp:defrule string-literal? (&aux match
-                                         (str (meta-sexp:make-char-accum))
-                                         (code 0)
-                                         digit
-                                         char
-                                         quote
-                                         (justify :none)
-                                         reserved
-                                         options-p
-                                         (translatable t))
-    ()
-  (:with-stored-match (match)
-    (:assign quote (:or #\" #\'))
-    (:* (:or (:and #\~ (:or (:and #\n (:char-push #\Newline str))
-                            (:and #\t (:char-push #\Tab str))
-                            (:and #\r (:char-push #\Return str))
-                            (:and #\E (:char-push (code-char #o033) str))
-                            (:and #\b (:char-push #\Backspace str))
-                            (:and #\f (:char-push (code-char #o014) str))
-                            (:and (:n-times 3 (:assign digit (:type meta-sexp:digit?))
-                                            ;; Octal digits
-                                            (:assign code (+ (* code 8) (digit-char-p digit))))
-                                  (:char-push (code-char code) str))
-                            (:char-push str)))
-             ;; Any unescaped char that isn't the quote
-             (:checkpoint
-              (:and (:assign char (:type character))
-                    (:not (eql char quote))
-                    (:char-push char str)))))
-    ;; Accept the quote char
-    (eql (meta-sexp:meta (:type character)) quote)
-    (:?
-     (:checkpoint #\:
-                  (:?
-                   (:icase (:or (:and "R"
-                                      (:assign justify ':right))
-                                (:and "L"
-                                      (:assign justify ':left))
-                                (:and "C"
-                                      (:assign justify ':center))
-                                (:and "T"
-                                      (:assign justify ':trim))))
-                   (:assign options-p t))
-                  (:? (:icase "U")
-                      (:or (:assign translatable nil) t)
-                      (:assign options-p t))
-                  (:? (:assign reserved (:rule integer?))
-                      (:assign options-p t))
-                  options-p)))
-  (:return (make-string-value :str str
-                              :justify justify
-                              :reserved reserved
-                              :translatable translatable)))
+(meta-sexp:defrule parse-numeric-or-symbol (char) ()
+  (:or (:rule iso8601-datetime-tz-literal?)
+       (:rule iso8601-time-tz-literal?)
+       (:rule date-literal?)
+       (:rule number?)
+       (:rule symbol?)))
+
+(meta-sexp:defrule parse-comment (&aux (depth 0) match) ()
+  (:and
+   (:with-stored-match (match)
+     (:and "/*" (incf depth))
+     (loop while (and (> depth 0)
+                      (not (meta-sexp:meta (:eof))))
+        do (cond
+             ((meta-sexp:meta "*/") (decf depth))
+             ((meta-sexp:meta "/*") (incf depth))
+             (t (meta-sexp:meta (:type t))))
+        finally (return t))
+     ;; If the depth isn't 0 here, we ran out of input
+     (= depth 0))
+   (:return (make-comment :str match))))
+
+(meta-sexp:defrule parse-comment-or-symbol (char) ()
+  (:or (:rule parse-comment)
+       (:rule symbol?)))
+
+(meta-sexp:defrule string-literal? () ()
+  (:or (:rule parse-string? #\")
+       (:rule parse-string? #\')))
+
+(meta-sexp:defrule parse-colon-token (char &aux double) ()
+  #\:
+  (:? #\:
+      (:assign double t))
+  (if double
+      (make-token :type :double-colon
+                  :value "::")
+      (make-token :type :colon
+                  :value ":")))
+
+(defstruct (parse-readtable (:constructor %make-parse-readtable))
+  (terminating-chars)
+  (non-terminating-chars)
+  (single-escapes)
+  (multiple-escapes))
+
+(defun make-parse-readtable ()
+  (%make-parse-readtable :terminating-chars (make-hash-table)
+                         :non-terminating-chars (make-hash-table)
+                         :single-escapes '()
+                         :multiple-escapes '()))
+
+;; TODO:
+(defun macro-character (c &optional (readtable *parse-readtable*))
+  (check-type c character)
+  (check-type readtable parse-readtable)
+  (let ((terminating (parse-readtable-terminating-chars readtable))
+        (non-terminating (parse-readtable-non-terminating-chars readtable)))
+    (multiple-value-bind (term-func term-present)
+        (gethash c terminating)
+      (multiple-value-bind (nonterm-func nonterm-present)
+          (gethash c non-terminating)
+        (cond
+          (term-present (values term-func nil))
+          (nonterm-present (values nonterm-func t))
+          (t (values nil nil)))))))
+
+(defun (setf macro-character) (func char &optional (readtable *parse-readtable*) (non-terminatingp nil))
+  (check-type func (or function null))
+  (check-type char character)
+  (check-type readtable parse-readtable)
+  (if non-terminatingp
+      (setf (gethash char (parse-readtable-non-terminating-chars readtable))
+            func)
+      (setf (gethash char (parse-readtable-terminating-chars readtable))
+            func)))
+
+(defun terminating-char-p (char &optional (readtable *parse-readtable*))
+  (declare (special *parse-readtable*))
+  (nth-value 1 (gethash char (parse-readtable-terminating-chars readtable))))
+
+(defun standard-readtable ()
+  (macrolet ((set-macro-chars ((readtable &key non-terminating) &body entries)
+               (let ((rt-var (gensym "READTABLE"))
+                     (non-terminating-var (gensym "NT-P")))
+                 `(let ((,rt-var ,readtable)
+                        (,non-terminating-var ,non-terminating))
+                    ,@(loop for entry in entries
+                         collect (if (listp entry)
+                                     `(setf (macro-character ,(first entry) ,rt-var ,non-terminating-var)
+                                            ,(second entry))
+                                     `(setf (macro-character ,entry ,rt-var ,non-terminating-var) nil)))))))
+    (let ((readtable (make-parse-readtable)))
+      ;; TODO: unquoted pathnames screw a lot of these up.
+      (set-macro-chars (readtable)
+                       (#\" #'parse-string?)
+                       (#\' #'parse-string?)
+                       (#\: #'parse-colon-token)
+                       #\.
+                       #\(
+                       #\)
+                       #\[
+                       #\]
+                       #\,
+                       #\;)
+      (loop for c in '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+         do (set-macro-chars (readtable :non-terminating t)
+                             (c #'parse-numeric-or-symbol)))
+      (set-macro-chars (readtable :non-terminating t)
+                       (#\- #'parse-number)
+                       (#\+ #'parse-number)
+                       (#\/ #'parse-comment-or-symbol))
+      readtable)))
+
+(defvar *parse-readtable* (standard-readtable))
+
+(meta-sexp:defrule parse-object (&aux char) ()
+  (tagbody
+   initial
+     (cond
+       ((meta-sexp:meta (:eof))
+        ;; TODO: maybe do some eof-error-p stuff here
+        (return-from parse-object nil))
+       ((meta-sexp:meta (:rule whitespace?))
+        (go initial))
+       ((meta-sexp:meta (:assign char (:peek-atom)))
+        (go dispatch-char)))
+   dispatch-char
+     (let ((macro-func (macro-character char)))
+       (cond
+         (macro-func
+          (let ((vals (multiple-value-list (funcall macro-func
+                                                    (meta-sexp:meta (:context))
+                                                    char))))
+            (if (null vals)
+                (go initial)
+                (return-from parse-object (first vals)))))
+         ;; NOTE: omitting escape-related stuff, since we don't use it yet
+         ((not (terminating-char-p char))
+          (go accumulate-constituent-chars))
+         (t (go read-terminating-token))))
+   accumulate-constituent-chars
+     ;; The reader macros should have parsed everything that isn't a
+     ;; symbol
+     (return-from parse-object (meta-sexp:meta (:rule symbol?)))
+   read-terminating-token
+     ;; The reader macros should have parsed anything that isn't a
+     ;; single-character token
+     (return-from parse-object (meta-sexp:meta (:type terminating-char)))))
+
+;; (meta-sexp:defrule non-symbol-token? (&aux val) ()
+;;   (:or (:and (:assign val (:rule string-literal?))
+;;              (make-token :type :string :value val))
+;;        ;; block delimiter (colon plus whitespace/EOF)
+;;        (:and (:assign val (:checkpoint #\: (:or (:type whitespace-char)
+;;                                                 :eof)))
+;;              (make-token :type :colon-terminator :value val))
+;;        (:and (:assign val "::")
+;;              (make-token :type :double-colon :value val))
+;;        (:and (:assign val #\:)
+;;              (make-token :type :colon :value val))
+;;        ;; Statement delimited (period plus whitespace/EOF)
+;;        (:and (:assign val (:checkpoint #\. (:or (:type whitespace-char)
+;;                                                 :eof)))
+;;              (make-token :type :dot-terminator :value val))
+;;        (:and (:assign val #\.)
+;;              (make-token :type :dot :value val))
+;;        (:and (:assign val #\()
+;;              (make-token :type :lparen :value val))
+;;        (:and (:assign val #\))
+;;              (make-token :type :rparen :value val))
+;;        (:and (:assign val #\[)
+;;              (make-token :type :lbracket :value val))
+;;        (:and (:assign val #\])
+;;              (make-token :type :rbracket :value val))
+;;        (:and (:assign val #\,)
+;;              (make-token :type :comma :value val))
+;;        (:and (:assign val #\;)
+;;              (make-token :type :semicolon :value val))))
+
+
+
+
 
 (meta-sexp:defrule boolean-literal? (&aux match val) ()
   (:with-stored-match (match)
@@ -230,42 +426,68 @@
                          :lhs buf
                          :rhs field)))
 
-(meta-sexp:defrule non-symbol-token? (&aux val) ()
-  (:or (:and (:assign val (:rule string-literal?))
-             (make-token :type :string :value val))
-       ;; block delimiter (colon plus whitespace/EOF)
-       (:and (:assign val (:checkpoint #\: (:or (:type whitespace-char)
-                                                :eof)))
-             (make-token :type :colon-terminator :value val))
-       ;; Statement delimited (period plus whitespace/EOF)
-       (:and (:assign val (:checkpoint #\. (:or (:type whitespace-char)
-                                                :eof)))
-             (make-token :type :dot-terminator :value val))
-       (:and (:assign val #\()
-             (make-token :type :lparen :value val))
-       (:and (:assign val #\))
-             (make-token :type :rparen :value val))
-       (:and (:assign val #\[)
-             (make-token :type :lbracket :value val))
-       (:and (:assign val #\])
-             (make-token :type :rbracket :value val))
-       (:and (:assign val #\,)
-             (make-token :type :comma :value val))
-       (:and (:assign val #\;)
-             (make-token :type :semicolon :value val))))
+;; Essentially token delimiters.
+;; (meta-sexp:defrule non-symbol-token? (&aux val) ()
+;;   (:or (:and (:assign val (:rule string-literal?))
+;;              (make-token :type :string :value val))
+;;        ;; block delimiter (colon plus whitespace/EOF)
+;;        (:and (:assign val (:checkpoint #\: (:or (:type whitespace-char)
+;;                                                 :eof)))
+;;              (make-token :type :colon-terminator :value val))
+;;        (:and (:assign val "::")
+;;              (make-token :type :double-colon :value val))
+;;        (:and (:assign val #\:)
+;;              (make-token :type :colon :value val))
+;;        ;; Statement delimited (period plus whitespace/EOF)
+;;        (:and (:assign val (:checkpoint #\. (:or (:type whitespace-char)
+;;                                                 :eof)))
+;;              (make-token :type :dot-terminator :value val))
+;;        (:and (:assign val #\.)
+;;              (make-token :type :dot :value val))
+;;        (:and (:assign val #\()
+;;              (make-token :type :lparen :value val))
+;;        (:and (:assign val #\))
+;;              (make-token :type :rparen :value val))
+;;        (:and (:assign val #\[)
+;;              (make-token :type :lbracket :value val))
+;;        (:and (:assign val #\])
+;;              (make-token :type :rbracket :value val))
+;;        (:and (:assign val #\,)
+;;              (make-token :type :comma :value val))
+;;        (:and (:assign val #\;)
+;;              (make-token :type :semicolon :value val))))
+
+(meta-sexp:defrule terminating-char? () ()
+  (:or (:eof)
+       (:type non-terminating-char)
+       (:type whitespace-char)))
+
+;; NOTE: this subsumes some numbers, too. use with caution.
+(meta-sexp:defrule symbol? (&aux val) ()
+  (:and (:with-stored-match (val)
+          (:+ (:not (:rule terminating-char?))
+              (:type character)))
+        (make-symb :name val)))
+
+(meta-sexp:defrule symbol-or-number? (&aux match val) ()
+  (:or (:checkpoint (:assign val (:rule numeric-literal?))
+                    ;; can't be any symbol-like tokens afterwards
+                    (:not (:rule symbol?))
+                    (:or (format *debug-io* "Winning number~%") t)
+                    val)
+       (:assign val (:with-stored-match (match)
+                      (:rule symbol?)))))
+
+(meta-sexp:defrule test (&aux match val) ()
+  (:and (:assign val (:rule numeric-literal?))
+        (:with-stored-match (match)
+          (:* (:type character))))
+  val)
 
 (meta-sexp:defrule scanner (&aux val match item) ()
   (:? (:rule whitespace?))
   (:or (:rule non-symbol-token?)
-       (:and (:assign val (:with-stored-match (match)
-                            (:+ (:not (:or (:rule non-symbol-token?)
-                                           (:type whitespace-char)))
-                                (:type character))))
-             ;; See if the symbol parses as numeric
-             (:with-context (val)
-               (:or (:and (:assign item (:rule numeric-literal?))
-                          (make-token :type :number :value item))
-                    (make-token :type :symbol :value (make-symb :name val)))))))
+       (:rule symbol-or-number?)))
 
 (meta-sexp:defrule token (type &aux tok) ()
   (:assign tok (:rule scanner))
@@ -281,7 +503,6 @@
 
 (meta-sexp:defrule literal? () ()
   (:or (:rule token :string)
-       (:rule token :boolean)
        (:rule token :datetime)
        (:rule token :date)
        (:rule token :number)))

@@ -181,8 +181,7 @@
     (ret ctx (in-meta (eql t)) (directive (eql :whole-match)) &optional args)
   "Transform for matching a form that must consume all remaining input."
   (let ((body-code (meta-sexp:transform-grammar ret ctx t :checkpoint args))
-        (post-code (meta-sexp:transform-grammar ret ctx t :not
-                                                (list '(:type character))))
+        (post-code (meta-sexp:transform-grammar ret ctx t :eof '()))
         (result-var (gensym "RESULT")))
     `(let ((,result-var ,body-code))
        (and ,post-code ,result-var))))
@@ -195,8 +194,28 @@
          ,(meta-sexp:transform-grammar ret ctx-var t :checkpoint forms)))))
 
 (defmethod meta-sexp:transform-grammar
-    (ret ctx (in-meta (eql t)) (directive (eql :eof)) &optional args)
-  (meta-sexp:transform-grammar ret ctx t :not (list '(:type character))))
+    (ret ctx (in-meta (eql t)) (directive (eql :peek-atom)) &optional args)
+  (declare (ignore args))
+  ;; (:not (:not (:type t)))
+  (let ((atom-var (gensym "ATOM")))
+    `(let (,atom-var)
+       ,(meta-sexp:transform-grammar ret ctx t :or
+                                     (list `(:checkpoint
+                                             (:assign ,atom-var (:type t))
+                                             nil)
+                                           atom-var)))))
+
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :context)) &optional args)
+  (declare (ignore args))
+  ctx)
+
+(meta-sexp:defrule test (&aux thing) ()
+  (:or
+   (:checkpoint
+    (:assign thing (:type t))
+    nil)
+   thing))
 
 (deftype whitespace-char ()
   '(or (eql #\Tab)

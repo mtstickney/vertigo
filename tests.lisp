@@ -18,15 +18,18 @@
 ;;; Note that negation is part of expression parsing, not the literals
 (define-test integer-literal
   (assert-equalp (vertigo::make-int-value :val 123)
-                 (parse #'vertigo::integer-literal? "123")))
+                 (parse #'vertigo::integer? "123")))
+
+(define-test non-integer-symbol
+  (assert-equalp nil (parse #'vertigo::integer? "123c")))
 
 (define-test integer-literal-leading-zero
   (assert-equalp (vertigo::make-int-value :val 123)
-                 (parse #'vertigo::integer-literal? "0123")))
+                 (parse #'vertigo::integer? "0123")))
 
 (define-test integer-literal-hex
     (assert-equalp (vertigo::make-int-value :val 255)
-                   (parse #'vertigo::integer-literal? "0xFF")))
+                   (parse #'vertigo::hex-integer? "0xFF")))
 
 ;;; Decimal literal tests
 (define-test decimal-literal-zero-decimal
@@ -55,11 +58,35 @@
 
 (define-test integral-numeric-literal
   (assert-equalp (vertigo::make-int-value :val 123)
-                 (parse #'vertigo::numeric-literal? "123")))
+                 (parse #'vertigo::number? "123")))
 
 (define-test decimal-numeric-literal
   (assert-equalp (vertigo::make-rational-value :val 123456/1000)
-                 (parse #'vertigo::numeric-literal? "123.456")))
+                 (parse #'vertigo::number? "123.456")))
+
+(define-test negative-signed-integer
+  (assert-equalp (vertigo::make-int-value :val -123)
+                 (parse #'vertigo::number? "-0123")))
+
+(define-test positive-signed-integer
+  (assert-equalp (vertigo::make-int-value :val 123)
+                 (parse #'vertigo::number? "+0123")))
+
+(define-test negative-signed-hex-integer
+  (assert-equalp (vertigo::make-int-value :val -255)
+                 (parse #'vertigo::number? "-0xFF")))
+
+(define-test positive-signed-hex-integer
+  (assert-equalp (vertigo::make-int-value :val 255)
+                 (parse #'vertigo::number? "+0xFF")))
+
+(define-test negative-signed-decimal
+  (assert-equalp (vertigo::make-rational-value :val -1/5)
+                 (parse #'vertigo::number? "-.2")))
+
+(define-test positive-signed-decimal
+  (assert-equalp (vertigo::make-rational-value :val 1/5)
+                 (parse #'vertigo::number? "+.2")))
 
 (define-test date-literal
   (let ((date-node (parse #'vertigo::date-literal? "1234/3456/5678")))
