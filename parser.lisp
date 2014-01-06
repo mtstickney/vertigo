@@ -189,9 +189,9 @@
 
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :with-context)) &optional args)
-  (destructuring-bind (context-data &rest forms) args
+  (destructuring-bind ((context-data) &rest forms) args
     (let ((ctx-var (gensym "CONTEXT")))
-      `(let ((,ctx-var (meta-sexp:create-parser-context ,@context-data)))
+      `(let ((,ctx-var (meta-sexp:create-parser-context ,context-data)))
          ,(meta-sexp:transform-grammar ret ctx-var t :checkpoint forms)))))
 
 (defmethod meta-sexp:transform-grammar
