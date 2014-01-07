@@ -122,13 +122,6 @@
 (meta-sexp:defrule parse-number (char) ()
   (:rule signed-number?))
 
-(meta-sexp:defrule test () ()
-  (values))
-
-(meta-sexp:defrule test2 (&aux thing) ()
-  (:or (:assign thing (:rule test)) t)
-  (:return thing))
-
 (meta-sexp:defrule date-literal? (&aux symb match month day year) ()
   (:with-stored-match (match)
     (:assign symb (:rule symbol?))
@@ -477,12 +470,6 @@
                     val)
        (:assign val (:with-stored-match (match)
                       (:rule symbol?)))))
-
-(meta-sexp:defrule test (&aux match val) ()
-  (:and (:assign val (:rule numeric-literal?))
-        (:with-stored-match (match)
-          (:* (:type character))))
-  val)
 
 (meta-sexp:defrule scanner (&aux val match item) ()
   (:? (:rule whitespace?))
