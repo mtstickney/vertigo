@@ -11,7 +11,7 @@
 ;; minus-expression = add-expression '-' add-expression
 ;;                  | add-expression
 
-(deftype terminating-char () '(satisfies terminating-char-p))
+(deftype terminating-char () '(and character (satisfies terminating-char-p)))
 
 (meta-sexp:defrule parse-string? (quote-char &aux match
                                              (str (meta-sexp:make-char-accum))
