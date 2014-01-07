@@ -383,30 +383,6 @@
      ;; single-character token
      (return-from parse-object (meta-sexp:meta (:type terminating-char)))))
 
-(meta-sexp:defrule boolean-literal? (&aux match val) ()
-  (:with-stored-match (match)
-    (:and (:or (:and (:icase (:or "YES" "TRUE"))
-                     (:assign val t))
-               (:and (:icase (:or "NO" "FALSE"))
-                     ;; ensure the value of :assign doesn't end the match
-                     (:or (:assign val nil) t)))
-          ;; boolean followed by another character isn't a boolean
-          (:not (:type identifier-char))
-          (:return (make-boolean-value :val val)))))
-
-
-
-;; '.' isn't treated as an operator here because we need to use
-;; whitespace to distinguish between field reference and statement separation
-(meta-sexp:defrule buffer-field? (&aux match buf field) ()
-  (:with-stored-match (match)
-    (:assign buf (:rule identifier?))
-    #\.
-    (:assign field (:rule identifier?)))
-  (:return (make-op-node :op "."
-                         :lhs buf
-                         :rhs field)))
-
 (meta-sexp:defrule terminating-char? () ()
   (:or (:eof)
        (:type terminating-char)
