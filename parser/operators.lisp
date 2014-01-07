@@ -254,6 +254,25 @@
        (make-token :type :colon
                    :value ":")))
 
+(meta-sexp:defrule parse-dot-token (char) ()
+  #\.
+  (:or (:and (:not (:not (:or (:eof)
+                              (:type whitespace-char))))
+             (make-token :type :dot-terminator
+                         :value "."))
+       (make-token :type :dot
+                   :value ".")))
+
+(meta-sexp:defrule parse-char-token (char type &aux c) ()
+  (:and (:assign c (:type character))
+        (eql c char))
+  (make-token :type type
+              :value (format nil "~C" char)))
+
+(defun char-parser (type)
+  (lambda (ctx char)
+    (parse-char-token ctx char type)))
+
 (defstruct (parse-readtable (:constructor %make-parse-readtable))
   (terminating-chars)
   (non-terminating-chars)
