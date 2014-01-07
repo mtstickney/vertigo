@@ -452,7 +452,7 @@
 
 (meta-sexp:defrule terminating-char? () ()
   (:or (:eof)
-       (:type non-terminating-char)
+       (:type terminating-char)
        (:type whitespace-char)))
 
 ;; NOTE: this subsumes some numbers, too. use with caution.
