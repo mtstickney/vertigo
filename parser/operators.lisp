@@ -12,6 +12,7 @@
 ;;                  | add-expression
 
 (deftype terminating-char () '(and character (satisfies terminating-char-p)))
+(deftype non-terminating-char () '(and character (not terminating-char)))
 
 (meta-sexp:defrule parse-string? (quote-char &aux match
                                              (str (meta-sexp:make-char-accum))
