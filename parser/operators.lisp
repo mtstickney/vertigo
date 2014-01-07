@@ -331,13 +331,13 @@
                        (#\" #'parse-string?)
                        (#\' #'parse-string?)
                        (#\: #'parse-colon-token)
-                       #\.
-                       #\(
-                       #\)
-                       #\[
-                       #\]
-                       #\,
-                       #\;)
+                       (#\. #'parse-dot-token)
+                       (#\( (char-parser :lparen))
+                       (#\) (char-parser :rparen))
+                       (#\[ (char-parser :lbracket))
+                       (#\] (char-parser :rbracket))
+                       (#\, (char-parser :comma))
+                       (#\; (char-parser :semicolon)))
       (loop for c in '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
          do (set-macro-chars (readtable :non-terminating t)
                              (c #'parse-numeric-or-symbol)))
