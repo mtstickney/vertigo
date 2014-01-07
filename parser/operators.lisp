@@ -242,15 +242,17 @@
   (:or (:rule parse-string? #\")
        (:rule parse-string? #\')))
 
-(meta-sexp:defrule parse-colon-token (char &aux double) ()
+(meta-sexp:defrule parse-colon-token (char) ()
   #\:
-  (:? #\:
-      (:assign double t))
-  (if double
-      (make-token :type :double-colon
-                  :value "::")
-      (make-token :type :colon
-                  :value ":")))
+  (:or (:and #\:
+             (make-token :type :double-colon
+                         :value "::"))
+       (:and (:not (:not (:or (:eof)
+                              (:type whitespace-char))))
+             (make-token :type :colon-terminator
+                         :value ":"))
+       (make-token :type :colon
+                   :value ":")))
 
 (defstruct (parse-readtable (:constructor %make-parse-readtable))
   (terminating-chars)
