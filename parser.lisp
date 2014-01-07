@@ -26,16 +26,22 @@
            ,(meta-sexp:transform-grammar ret ctx t :cursor)))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :with-stored-match)) &optional args)
-  (let* ((index-var (gensym))
-         (match-save (meta-sexp:transform-grammar
-                      ret ctx t :assign
-                      (list (first args)
-                            (meta-sexp:transform-grammar ret ctx t :matched-since (list index-var))))))
-    `(let ((,index-var ,(meta-sexp:transform-grammar ret ctx t :cursor)))
-       ;; (:and ,@body (:assign var (:matched-since index)))
-       ,(meta-sexp:transform-grammar ret ctx t :and
-                                     (concatenate 'list (cdr args)
-                                                  (list match-save))))))
+  (destructuring-bind ((place) &body body) args
+    (let* ((index-var (gensym "INDEX"))
+           (result-var (gensym "RESULT"))
+           (match-save (meta-sexp:transform-grammar
+                        ret ctx t :assign
+                        (list place
+                              (meta-sexp:transform-grammar ret ctx t :matched-since (list index-var))))))
+      `(let ((,index-var ,(meta-sexp:transform-grammar ret ctx t :cursor))
+             (,result-var ,(meta-sexp:transform-grammar ret ctx t :and body)))
+         ;; (:and ,@body (:assign var (:matched-since index)))
+         ,(meta-sexp:transform-grammar ret ctx t :and
+                                       (list result-var
+                                             match-save
+                                             ;; Want to return this as
+                                             ;; the value of the :and
+                                             result-var))))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :n-times)) &optional args)
   (let ((count (first args)))
