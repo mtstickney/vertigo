@@ -64,9 +64,9 @@
                   options-p
                   ;; Must be followed by a terminating character,
                   ;; ignore these options otherwise
-                  (:and (:not (:rule terminating-char?))
-                        (setf string-args '())
-                        nil))))
+                  (:or (:not (:not (:rule terminating-char?)))
+                       ;; Erase the args and fail
+                       (setf string-args '())))))
   (apply #'make-string-value :str str (and options-p string-args)))
 
 ; "Run of digits in base BASE. Return an INT-VALUE of the integer and the number of digits as multiple values."
