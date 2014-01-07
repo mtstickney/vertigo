@@ -342,8 +342,8 @@
          do (set-macro-chars (readtable :non-terminating t)
                              (c #'parse-numeric-or-symbol)))
       (set-macro-chars (readtable :non-terminating t)
-                       (#\- #'parse-number)
-                       (#\+ #'parse-number)
+                       (#\- #'parse-numeric-or-symbol)
+                       (#\+ #'parse-numeric-or-symbol)
                        (#\/ #'parse-comment-or-symbol))
       readtable)))
 
