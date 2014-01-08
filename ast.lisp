@@ -69,6 +69,10 @@
 (defstruct list-box
   (list))
 
+(defstruct statement-block
+  (statements)
+  (end-symbol))
+
 (defstruct call
   (type)
   (func)
