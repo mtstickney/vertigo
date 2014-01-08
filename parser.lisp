@@ -1,16 +1,15 @@
 (in-package #:vertigo)
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited)) &optional args)
-  (let ((delimiter (first args)))
-    (meta-sexp:transform-grammar ret ctx t :checkpoint (join-list delimiter (cdr args)))))
+  (destructuring-bind (delimiter &body body) args
+    (meta-sexp:transform-grammar ret ctx t :checkpoint (join-list delimiter body))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :delimited*)) &optional args)
-  (let ((delimiter (first args))
-        (term-items (cdr args)))
+  (destructuring-bind (delimiter &body items) args
     (meta-sexp:transform-grammar ret ctx t :checkpoint
-                                 `(,@term-items
+                                 `(,@items
                                    (:* (:checkpoint ,delimiter
-                                                    ,@term-items))))))
+                                                    ,@items))))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :cursor)) &optional args)
   (declare (ignore args))
