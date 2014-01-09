@@ -236,7 +236,10 @@
    (:return (make-comment :str match))))
 
 (meta-sexp:defrule parse-comment-or-symbol (char) ()
-  (:or (:rule parse-comment)
+  (:or (:and (:rule parse-comment)
+             ;; return (values) to tell parse-object to try again
+             (:commit)
+             (return-from parse-comment-or-symbol (values)))
        (:rule symbol?)))
 
 (meta-sexp:defrule string-literal? () ()
