@@ -261,6 +261,11 @@
                       (equalp "EDITING")
                       (equalp "TRIGGERS")))) t)))
 
+(meta-sexp:defrule block-symbol? (&aux obj) ()
+  (:assign obj (:rule any-symbol))
+  (block-symbol-p obj)
+  obj)
+
 (meta-sexp:defrule parse-colon-token (char) ()
   #\:
   (:or (:and #\:
