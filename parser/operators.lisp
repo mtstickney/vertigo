@@ -530,7 +530,6 @@
                (:not (:rule token :rbracket))
                (:assign expr (:rule expression?))
                (:list-push expr subscripts))
-  (:rule token :rbracket)
   (make-list-box :list (reverse subscripts)))
 
 ;; TODO: Add the function-form of IF in here (the ternary)
@@ -596,9 +595,13 @@
                          rbp))
            (rhs (cond
                   ((equal op "[") (let ((box (meta-sexp:meta (:rule array-ref-list?))))
-                                    (and box (list-box-list box))))
+                                    (and box
+                                         (meta-sexp:meta (:rule token :rbracket))
+                                         (list-box-list box))))
                   ((equal op "(") (let ((box (meta-sexp:meta (:rule param-list?))))
-                                    (and box (list-box-list box))))
+                                    (and box
+                                         (meta-sexp:meta (:rule token :rparen))
+                                         (list-box-list box))))
                   (t (meta-sexp:meta (:rule expression? rest-rbp))))))
       (meta-sexp:meta
        (:and rhs

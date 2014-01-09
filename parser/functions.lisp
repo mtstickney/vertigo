@@ -11,9 +11,9 @@
 
   (:return (vertigo::make-param :type type :val expr)))
 
+;; Note: parens are taken care of by the expression parser
 (meta-sexp:defrule param-list? (&aux match param (list (meta-sexp:make-list-accum))) ()
   (:with-stored-match (match)
-      "("
     (:? (:rule whitespace?))
 
     ;; Parameters
@@ -22,8 +22,7 @@
                      (:assign param (:rule param-spec?))
                      (:list-push param list)
                      (:? (:rule whitespace?))))
-    (:? (:rule whitespace?))
-    ")")
+    (:? (:rule whitespace?)))
   (:return (vertigo::make-list-box :list (nreverse list))))
 
 ;;; Custom function call rule, for user-defined and builtin functions.
