@@ -51,12 +51,6 @@
 (defstruct (comment (:include ast-node))
   (str))
 
-(defstruct boolean-value
-  (val))
-
-(defstruct ident
-  (name))
-
 (defstruct (op-node (:include ast-node))
   (op)
   (lhs)
@@ -75,13 +69,3 @@
 
 (defstruct (statement-block (:include ast-node))
   (statements))
-
-(defstruct call
-  (type)
-  (func)
-  (params))
-
-(defstruct widget
-  (type)
-  (widget)
-  (parent))
