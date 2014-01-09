@@ -69,11 +69,9 @@ def syntax_section(soup):
 		# Similarly, bail when a string's contents include 'example'
 		if i.string is not None and u'example' in i.string:
 			return (syntax_tables, special)
-		if isParameterTag(i):
-			# we're done here
+		if isParameterTag(i) or isExamplesTag(i):
+			# we're done here (might not have been any parameters)
 			return (syntax_tables, special)
-		if isExamplesTag(i):
-			# Also done (might not have been any parameters)
 		if not isinstance(i, bs4.element.Tag):
 			return (syntax_tables, special)
 		if isSyntaxNoteTag(i):
