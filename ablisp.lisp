@@ -10,8 +10,8 @@
 (deftype caps () `(member ,@(char-range #\A #\Z)))
 (deftype lowercase () `(member ,@(char-range #\a #\z)))
 (deftype letter () `(or caps lowercase))
-(deftype identifier-char () `(or letter digit (member #\- #\_)))
-(deftype keyword-char () `(or caps digit (member #\- #\_)))
+(deftype identifier-char () `(or letter meta-sexp:digit? (member #\- #\_)))
+(deftype keyword-char () `(or caps meta-sexp:digit? (member #\- #\_)))
 ;; isspace()-equivalent whitespace chars
 (deftype whitespace () `(member #\Space
                                 #\Tab
