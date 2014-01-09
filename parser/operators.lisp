@@ -483,6 +483,34 @@
       :right
       :left))
 
+(meta-sexp:defrule token (type &aux obj) ()
+  (:assign obj (:rule parse-object))
+  (and (typep obj 'token)
+       (eq type (token-type obj)))
+  obj)
+
+(meta-sexp:defrule the-symbol (name &aux obj) ()
+  (:assign obj (:rule parse-object))
+  (and (typep obj 'symb)
+       (equalp (symb-name obj)
+               (etypecase name
+                 (string name)
+                 (symbol (symbol-name name)))))
+  obj)
+
+(meta-sexp:defrule any-symbol (&aux obj) ()
+  (:assign obj (:rule parse-object))
+  (typep obj 'symb)
+  obj)
+
+(meta-sexp:defrule array-ref-list? (&aux expr (subscripts '())) ()
+  (:delimited* (:rule token :comma)
+               (:not (:rule token :rbracket))
+               (:assign expr (:rule expression?))
+               (:list-push expr subscripts))
+  (:rule token :rbracket)
+  (make-list-box :list (reverse subscripts)))
+
 ;; TODO: Add the function-form of IF in here (the ternary)
 (meta-sexp:defrule unary-value? (&aux match op expr) ()
   (:or
