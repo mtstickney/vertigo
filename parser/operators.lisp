@@ -605,13 +605,37 @@
              (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
   (:return  lhs))
 
-(meta-sexp:defrule statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
+(meta-sexp:defrule test (&aux (objs '()) thing) ()
+  (:* (:assign thing (:or (:rule expression?)
+                          (:rule parse-object)))
+      (:list-push thing objs))
+  (reverse objs))
+
+(meta-sexp:defrule unlabeled-statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
   (:+ (:not (:rule token :dot-terminator))
       (:assign item (:or (:rule expression?)
                          (:rule parse-object)))
       (:list-push item parts))
   (:rule token :dot-terminator)
   (:return (make-statement :parts (reverse parts))))
+
+(meta-sexp:defrule labeled-block-statement? (&aux label block-stmt) ()
+  (:not (:rule block-symbol?))
+  (:assign label (:rule any-symbol))
+  ;; don't want to let parse-object try to read a sequence
+  #\:
+  (:or (:rule whitespace?)
+       (:eof))
+  ;; label is followed by a block
+  (:not (:not (:rule block-symbol?)))
+  (:assign block-stmt (:rule unlabeled-statement?))
+  (or (setf (statement-label block-stmt) label) t)
+  block-stmt)
+
+(meta-sexp:defrule statement? () ()
+  (:or (:rule labeled-block-statement?)
+       ;; Note that unlabeled blocks come from this rule
+       (:rule unlabeled-statement?)))
 
 (defun end-statement-p (statement)
   (optima:match statement
