@@ -568,7 +568,12 @@
            (rest-rbp (if (eq (op-associativity op) :left)
                          (1+ rbp)
                          rbp))
-           (rhs (meta-sexp:meta (:rule expression? rest-rbp))))
+           (rhs (cond
+                  ((equal op "[") (let ((box (meta-sexp:meta (:rule array-ref-list?))))
+                                    (and box (list-box-list box))))
+                  ((equal op "(") (let ((box (meta-sexp:meta (:rule param-list?))))
+                                    (and box (list-box-list box))))
+                  (t (meta-sexp:meta (:rule expression? rest-rbp))))))
       (meta-sexp:meta
        (:and rhs
              (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
