@@ -596,3 +596,10 @@
     ((statement- (parts (list (symb- (name (equalp "END")))
                               (structure symb-)))) t)
     (x (declare (ignore x)) nil)))
+
+;; Note: excludes END statements
+(meta-sexp:defrule statement-block? (&aux s (list '())) ()
+  (:* (:checkpoint (:assign s (:rule statement?))
+                   (not (end-statement-p s))
+                   (:list-push s list)))
+  (make-statement-block :statements (reverse list)))
