@@ -2,9 +2,10 @@
 
 (in-package #:ablisp)
 
-(defun char-range (a b)
-  (loop for i from (char-code a) to (char-code b)
-     collect (code-char i)))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun char-range (a b)
+    (loop for i from (char-code a) to (char-code b)
+       collect (code-char i))))
 
 (deftype caps () `(member ,@(char-range #\A #\Z)))
 (deftype lowercase () `(member ,@(char-range #\a #\z)))
