@@ -638,9 +638,8 @@
 
 (defun end-statement-p (statement)
   (optima:match statement
-    ((statement- (parts (list* (symb- (name (equalp "END")))
-                               (or (list (structure symb-))
-                                   nil)))) t)))
+    ((statement- (parts (list* (symb- (name (equalp "END"))) _)))
+     t)))
 
 ;; Note: excludes END statements
 (meta-sexp:defrule statement-block? (&aux s (list '())) ()
