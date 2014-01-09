@@ -500,7 +500,7 @@
                                    #'mts.util:operator-page-p
                                    #'mts.util:preproc-page-p
                                    #'mts.util:phrase-page-p))
-      (let ((fn-statement-pages (fn-statement-pages fn-pages statement-pages)))
+      (let ((fn-statement-pages (mts.util:fn-statement-pages fn-pages statement-pages)))
         (setf statement-pages (set-difference statement-pages fn-statement-pages :test #'equal))
         (macrolet ((compile-pages ((dest) &body pages)
                      `(progn
