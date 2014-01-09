@@ -72,8 +72,7 @@
   (list))
 
 (defstruct statement-block
-  (statements)
-  (end-symbol))
+  (statements))
 
 (defstruct call
   (type)

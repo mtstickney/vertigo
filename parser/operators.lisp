@@ -266,17 +266,19 @@
   (block-symbol-p obj)
   obj)
 
-(meta-sexp:defrule parse-colon-token (char) ()
+(meta-sexp:defrule parse-colon-token (char &aux block) ()
   #\:
   (:or (:and #\:
              (make-token :type :double-colon
                          :value "::"))
        (:and (:not (:not (:or (:eof)
                               (:type whitespace-char))))
-             (make-token :type :colon-terminator
-                         :value ":"))
-       (make-token :type :colon
-                   :value ":")))
+             (:assign block (:rule statement-block?)))
+       ;; The only legitimate thing to have after a regular colon op
+       ;; is a non-terminating character
+       (:and (:not (:not (:type non-terminating-char)))
+             (make-token :type :colon
+                         :value ":"))))
 
 (meta-sexp:defrule parse-dot-token (char) ()
   #\.
