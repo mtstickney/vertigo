@@ -13,7 +13,9 @@
 (defstruct (int-value (:include number-value)))
 
 (defstruct statement
-  (parts))
+  (parts)
+  ;; Some statements introduce blocks and may have a label
+  (label))
 
 ;;; DECIMAL types are represented as rationals (probably not in
 ;;; simplified form)
