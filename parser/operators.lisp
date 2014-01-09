@@ -350,13 +350,14 @@
 
 (defvar *parse-readtable* (standard-readtable))
 
-(meta-sexp:defrule parse-object (&aux char) ()
+(meta-sexp:defrule parse-object (&aux char obj) ()
   (tagbody
    initial
      (cond
        ((meta-sexp:meta (:eof))
         ;; TODO: maybe do some eof-error-p stuff here
-        (return-from parse-object nil))
+        (meta-sexp:meta
+         (:return nil)))
        ((meta-sexp:meta (:rule whitespace?))
         (go initial))
        ((meta-sexp:meta (:assign char (:peek-atom)))
@@ -370,7 +371,8 @@
                                                     char))))
             (if (null vals)
                 (go initial)
-                (return-from parse-object (first vals)))))
+                (meta-sexp:meta
+                 (:return (first vals))))))
          ;; NOTE: omitting escape-related stuff, since we don't use it yet
          ((not (terminating-char-p char))
           (go accumulate-constituent-chars))
@@ -378,11 +380,15 @@
    accumulate-constituent-chars
      ;; The reader macros should have parsed everything that isn't a
      ;; symbol
-     (return-from parse-object (meta-sexp:meta (:rule symbol?)))
+     (meta-sexp:meta
+      (:and (:assign obj (:rule symbol?))
+            (:return obj)))
    read-terminating-token
      ;; The reader macros should have parsed anything that isn't a
      ;; single-character token
-     (return-from parse-object (meta-sexp:meta (:type terminating-char)))))
+     (meta-sexp:meta
+      (:and (:assign obj (:type terminating-char))
+            (:return obj)))))
 
 (meta-sexp:defrule terminating-char? () ()
   (:or (:eof)
