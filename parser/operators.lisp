@@ -548,7 +548,8 @@
 
 (meta-sexp:defrule statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
   (:+ (:not (:rule token :dot-terminator))
-      (:assign item (:rule expression?))
+      (:assign item (:or (:rule expression?)
+                         (:rule parse-object)))
       (:list-push item parts))
   (:rule token :dot-terminator)
   (:return (make-statement :parts (reverse parts))))
