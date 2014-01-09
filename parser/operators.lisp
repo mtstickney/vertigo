@@ -276,7 +276,7 @@
                          :value "::"))
        (:and (:not (:not (:or (:eof)
                               (:type whitespace-char))))
-             (:assign block (:rule statement-block?)))
+             (:assign block (:rule colon-statement-block?)))
        ;; The only legitimate thing to have after a regular colon op
        ;; is a non-terminating character
        (:and (:not (:not (:type non-terminating-char)))
@@ -644,9 +644,15 @@
     ((statement- (parts (list* (symb- (name (equalp "END"))) _)))
      t)))
 
-;; Note: excludes END statements
-(meta-sexp:defrule statement-block? (&aux s (list '())) ()
+;; Note: excludes END statements, used when reading a block starting
+;; with a colon
+(meta-sexp:defrule colon-statement-block? (&aux s (list '())) ()
   (:* (:checkpoint (:assign s (:rule statement?))
                    (not (end-statement-p s))
+                   (:list-push s list)))
+  (make-statement-block :statements (reverse list)))
+
+(meta-sexp:defrule statement-block? (&aux s (list '())) ()
+  (:* (:checkpoint (:assign s (:rule statement?))
                    (:list-push s list)))
   (make-statement-block :statements (reverse list)))
