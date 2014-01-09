@@ -243,6 +243,24 @@
   (:or (:rule parse-string? #\")
        (:rule parse-string? #\')))
 
+;; Matches symbols that begin a block
+(defun block-symbol-p (sym)
+  (optima:match sym
+    ((symb- (name (or (equalp "PROCEDURE")
+                      (equalp "METHOD")
+                      (equalp "INTERFACE")
+                      (equalp "FUNCTION")
+                      (equalp "DO")
+                      (equalp "DESTRUCTOR")
+                      (equalp "CONSTRUCTOR")
+                      (equalp "CLASS")
+                      (equalp "CASE")
+                      (equalp "FOR")
+                      (equalp "REPEAT")
+                      (equalp "COMPARES") ; From BUFFER-COMPARE
+                      (equalp "EDITING")
+                      (equalp "TRIGGERS")))) t)))
+
 (meta-sexp:defrule parse-colon-token (char) ()
   #\:
   (:or (:and #\:
