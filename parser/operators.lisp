@@ -406,7 +406,6 @@
   (:or (:checkpoint (:assign val (:rule numeric-literal?))
                     ;; can't be any symbol-like tokens afterwards
                     (:not (:rule symbol?))
-                    (:or (format *debug-io* "Winning number~%") t)
                     val)
        (:assign val (:with-stored-match (match)
                       (:rule symbol?)))))
