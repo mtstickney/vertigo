@@ -61,11 +61,10 @@ def syntax_section(soup):
 	special = False
 	syntax_tables = []
 	for i in syntax.find_next_siblings():
-			# bail as soon as someone starts bandying 'example' about
-			if u'example' in i or u'Example' in i:
-				return (syntax_tables, special)
-			else:
-				continue
+		# bail as soon as someone starts bandying 'example' about
+		if u'example' in i or u'Example' in i:
+			return (syntax_tables, special)
+
 		# Similarly, bail when a string's contents include 'example'
 		if i.string is not None and u'example' in i.string:
 			return (syntax_tables, special)
