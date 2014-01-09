@@ -53,8 +53,12 @@ def syntax_section(soup):
 	h4s = soup.find_all('h4')
 	if len(h4s) == 0:
 		return (None, False)
-	syntax = h4s[0]
-	if syntax.string != u'\r\nSyntax\r\n':
+	syntax = None
+	for s in h4s:
+		if s.string == u'\r\nSyntax\r\n':
+			syntax = s
+			break
+	if syntax is None:
 		return (None, False)
 
 	# Go find the syntax sections
