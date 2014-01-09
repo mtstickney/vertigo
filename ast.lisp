@@ -1,18 +1,20 @@
 (in-package #:vertigo)
 
-(defstruct token
+(defstruct ast-node)
+
+(defstruct (token (:include ast-node))
   (type)
   (value))
 
-(defstruct symb
+(defstruct (symb (:include ast-node))
   (name))
 
-(defstruct number-value
+(defstruct (number-value (:include ast-node))
   (val))
 
 (defstruct (int-value (:include number-value)))
 
-(defstruct statement
+(defstruct (statement (:include ast-node))
   (parts)
   ;; Some statements introduce blocks and may have a label
   (label))
@@ -21,12 +23,12 @@
 ;;; simplified form)
 (defstruct (rational-value (:include number-value)))
 
-(defstruct date-value
+(defstruct (date-value (:include ast-node))
   (month)
   (day)
   (year))
 
-(defstruct time-value
+(defstruct (time-value (:include ast-node))
   (hour)
   (minute)
   (second)
@@ -36,17 +38,17 @@
   (tz-min)
   (tz-present))
 
-(defstruct datetime-value
+(defstruct (datetime-value (:include ast-node))
   (date)
   (time))
 
-(defstruct string-value
+(defstruct (string-value (:include ast-node))
   (str)
   (justify :none)
   (translatable t)
   (reserved))
 
-(defstruct comment
+(defstruct (comment (:include ast-node))
   (str))
 
 (defstruct boolean-value
@@ -55,23 +57,23 @@
 (defstruct ident
   (name))
 
-(defstruct op-node
+(defstruct (op-node (:include ast-node))
   (op)
   (lhs)
   (rhs))
 
-(defstruct unary-op-node
+(defstruct (unary-op-node (:include ast-node))
   (op)
   (val))
 
-(defstruct param
+(defstruct (param (:include ast-node))
   (type :input)
   (val))
 
 (defstruct list-box
   (list))
 
-(defstruct statement-block
+(defstruct (statement-block (:include ast-node))
   (statements))
 
 (defstruct call
