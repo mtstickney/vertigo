@@ -589,3 +589,10 @@
       (:list-push item parts))
   (:rule token :dot-terminator)
   (:return (make-statement :parts (reverse parts))))
+
+(defun end-statement-p (statement)
+  (optima:match statement
+    ((statement- (parts (list (symb- (name (equalp "END")))))) t)
+    ((statement- (parts (list (symb- (name (equalp "END")))
+                              (structure symb-)))) t)
+    (x (declare (ignore x)) nil)))
