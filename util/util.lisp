@@ -21,6 +21,7 @@
            #:operator-page-p
            #:preproc-page-p
            #:phrase-page-p
+           #:slurp-file
            ))
 
 (in-package :mts.util)
@@ -163,3 +164,9 @@
                (part (nthcdr set-index partitions)))
           (pushnew (car set) (car part))
           (apply #'values partitions)))))
+
+(defun slurp-file (path)
+  (with-open-file (fh path)
+    (let ((str (make-string (file-length fh))))
+      (read-sequence str fh)
+      str)))
