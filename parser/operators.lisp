@@ -492,7 +492,6 @@
     (or (equalp op "+")
         (equalp op "-")
         (equalp op "NOT"))
-    (:? (:rule whitespace?))
     (:assign expr (:rule expression? (right-binding-power op 1)))
     (:return (make-unary-op-node :op op :val expr)))
    (:rule atom?)
@@ -535,11 +534,8 @@
   (:*
    ;; While lookahead token is a binary op with binding power >= BIND-POWER
    (:checkpoint
-    (:? (:rule whitespace?))
     (:assign op (:rule operator?))
     (>= (right-binding-power op 2) bind-power)
-
-    (:? (:rule whitespace?))
     (let* ((rbp (right-binding-power op 2))
            (rest-rbp (if (eq (op-associativity op) :left)
                          (1+ rbp)
