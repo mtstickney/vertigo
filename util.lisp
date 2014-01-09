@@ -57,3 +57,9 @@
             (funcall f v))
           funcs
           :initial-value initial))
+
+(defun slurp-file (path)
+  (with-open-file (fh path)
+    (let ((str (make-string (file-length fh))))
+      (read-sequence str fh)
+      str)))
