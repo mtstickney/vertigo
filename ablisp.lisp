@@ -451,7 +451,7 @@
                (format stream "(meta-sexp:defrule ~S () ()~%)~%" k))
              rules)))
 
-(defun parse-file (path &optional (fn #'choice-expression))
+(defun parse-file (path &optional (fn #'choice-expression?))
   "Parse the syntax description file PATH into an AST."
   (with-open-file (fh path :direction :input :element-type '(unsigned-byte 8))
     (funcall fn (meta-sexp:create-parser-context
