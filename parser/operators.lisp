@@ -529,35 +529,36 @@
                 (not (typep expr 'token))
                 expr)))
 
-(meta-sexp:defrule operator? (&aux val match) ()
+(meta-sexp:defrule operator? (&aux obj match) ()
   (:with-stored-match (match)
-    (:assign val (:rule token :symbol))
-    (let ((name (symb-name val)))
-      (meta-sexp:meta
-       (:with-context (name)
-         (:whole-match (:or "::"
-                            ":"
-                            "/"
-                            "*"
-                            "+"
-                            "-"
-                            "["
-                            "<>"
-                            "<="
-                            ">="
-                            "<"
-                            ">"
-                            "="
-                            (:icase "MODULO")
-                            (:icase "NE")
-                            (:icase "LE")
-                            (:icase "GE")
-                            (:icase "LT")
-                            (:icase "GT")
-                            (:icase "EQ")
-                            (:icase "NOT")
-                            (:icase "AND")
-                            (:icase "OR"))))))))
+    (:assign obj (:rule parse-object))
+    (typecase obj
+      (symb (meta-sexp:meta
+             (:with-context ((symb-name obj))
+               (:whole-match
+                (:or (:icase "MODULO")
+                     (:icase "NE")
+                     (:icase "LE")
+                     (:icase "GE")
+                     (:icase "LT")
+                     (:icase "GT")
+                     (:icase "EQ")
+                     (:icase "NOT")
+                     (:icase "AND")
+                     (:icase "OR")
+                     "/"
+                     "*"
+                     "+"
+                     "-"
+                     "<>"
+                     "<="
+                     ">="
+                     "<"
+                     ">"
+                     "=")))))
+      (token (case (token-type obj)
+               ((:double-colon :colon :dot :lbracket :lparen) (token-value obj))
+               (t nil))))))
 
 (meta-sexp:defrule expression? (&optional (bind-power 0) &aux match op lhs) ()
   (:assign lhs (:rule unary-value?))
