@@ -116,7 +116,7 @@ def syntax_page(filename):
 	fh.close()
 
 def file_title(soup):
-	return soup.h2.string.strip()
+	return soup.h2.string.encode('utf-8').strip()
 
 def html_files(d):
 	for root, dirs, files in os.walk(d):
