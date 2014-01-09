@@ -443,9 +443,9 @@
 
 (defun right-binding-power (op arity)
   (cond
-    ;; Statement terminator, non-binding (should maybe remove this?)
-    ((equal op ".")
-     0)
+    ;; ;; Statement terminator, non-binding (should maybe remove this?)
+    ;; ((equal op ".")
+    ;;  0)
     ((equalp op "OR")
      1)
     ((equalp op "AND")
@@ -466,11 +466,14 @@
               (equal op "-"))
           (eql arity 1))
      7)
-    ((equal op "[") ;; array reference operator
-     8)
+    ;; ((equal op "[") ;; array reference operator
+    ;;  8)
     ((or (equal op ":")
-         (equal op "::"))
-     9)
+         (equal op "::")
+         (equal op "[")
+         (equal op ".")
+         (equal op "("))
+     8)
     (t (error "Unknown operator ~A" op))))
 
 ;; TODO: how does associativity work with separators like "."?
