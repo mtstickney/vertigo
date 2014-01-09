@@ -215,6 +215,12 @@
   (declare (ignore args))
   ctx)
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :commit)) &optional args)
+  (declare (ignore args))
+  `(progn (meta-sexp::commit ,ctx)
+          t))
+
 (meta-sexp:defrule test (&aux thing) ()
   (:or
    (:checkpoint
