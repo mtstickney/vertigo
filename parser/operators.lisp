@@ -610,12 +610,6 @@
              (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
   (:return  lhs))
 
-(meta-sexp:defrule test (&aux (objs '()) thing) ()
-  (:* (:assign thing (:or (:rule expression?)
-                          (:rule parse-object)))
-      (:list-push thing objs))
-  (reverse objs))
-
 (meta-sexp:defrule unlabeled-statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
   (:+ (:not (:rule token :dot-terminator))
       (:assign item (:or (:rule expression?)
