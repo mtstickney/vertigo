@@ -530,12 +530,13 @@
   (typep obj 'symb)
   obj)
 
-(meta-sexp:defrule array-ref-list? (&aux expr (subscripts '())) ()
-  (:delimited* (:rule token :comma)
-               (:not (:rule token :rbracket))
-               (:assign expr (:rule expression?))
-               (:list-push expr subscripts))
-  (make-list-box :list (reverse subscripts)))
+(meta-sexp:defrule delimited-list? (delimiter-token &aux expr (list '())) ()
+  (:* (:not (:rule token delimiter-token))
+      (:assign expr (:or (:rule expression?)
+                         (:rule parse-object)))
+      (:list-push expr list))
+  (:rule token delimiter-token)
+  (:return (make-list-box :list (reverse list))))
 
 ;; TODO: Add the function-form of IF in here (the ternary)
 (meta-sexp:defrule unary-value? (&aux match op expr) ()
@@ -594,23 +595,25 @@
    (:checkpoint
     (:assign op (:rule operator?))
     (>= (right-binding-power op 2) bind-power)
-    (let* ((rbp (right-binding-power op 2))
-           (rest-rbp (if (eq (op-associativity op) :left)
-                         (1+ rbp)
-                         rbp))
-           (rhs (cond
-                  ((equal op "[") (let ((box (meta-sexp:meta (:rule array-ref-list?))))
-                                    (and box
-                                         (meta-sexp:meta (:rule token :rbracket))
-                                         (list-box-list box))))
-                  ((equal op "(") (let ((box (meta-sexp:meta (:rule arg-list?))))
-                                    (and box
-                                         (meta-sexp:meta (:rule token :rparen))
-                                         (list-box-list box))))
-                  (t (meta-sexp:meta (:rule expression? rest-rbp))))))
-      (meta-sexp:meta
-       (:and rhs
-             (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))
+    (flet ((parse-rhs (rbp)
+             "Parse a RHS expression, and return the object. As a second value, return t if the parse was successful, nil otherwise (allows the RHS to be an empty list)."
+             (cond
+               ((equal op "[") (let ((box (meta-sexp:meta (:rule delimited-list? :rbracket))))
+                                 (and box
+                                      (values (list-box-list box) t))))
+               ((equal op "(") (let ((box (meta-sexp:meta (:rule delimited-list? :rparen))))
+                                 (and box
+                                      (values (list-box-list box) t))))
+               (t (let ((val (meta-sexp:meta (:rule expression? rbp))))
+                    (values val (if val t nil)))))))
+      (let* ((rbp (right-binding-power op 2))
+             (rest-rbp (if (eq (op-associativity op) :left)
+                           (1+ rbp)
+                           rbp)))
+        (multiple-value-bind (rhs rhs-p) (parse-rhs rest-rbp)
+          (meta-sexp:meta
+           (:and rhs-p
+                 (setf lhs (make-op-node :op op :lhs lhs :rhs rhs)))))))))
   (:return  lhs))
 
 (meta-sexp:defrule unlabeled-statement? (&aux (parts (meta-sexp:make-list-accum)) item) ()
