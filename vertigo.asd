@@ -10,11 +10,13 @@
                (:file "util")
                (:file "parser")
                (:file "ast")
-               (:file "parser/other")
-               (:file "parser/functions")
-               (:file "parser/operators")
-               (:file "parser/phrases")
-               (:file "parser/statements")
+               (:module parser-rules
+                        :pathname "parser"
+                        :components ((:file "other")
+                                     (:file "functions")
+                                     (:file "operators")
+                                     (:file "phrases")
+                                     (:file "statements")))
                (:file "tests")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))
