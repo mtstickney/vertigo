@@ -61,7 +61,12 @@
   (val))
 
 (defstruct (param (:include ast-node))
-  (type :input)
+  (direction :input)
+  (val)
+  (type))
+
+(defstruct (arg (:include ast-node))
+  (direction)
   (val))
 
 (defstruct list-box

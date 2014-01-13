@@ -603,7 +603,7 @@
                                     (and box
                                          (meta-sexp:meta (:rule token :rbracket))
                                          (list-box-list box))))
-                  ((equal op "(") (let ((box (meta-sexp:meta (:rule param-list?))))
+                  ((equal op "(") (let ((box (meta-sexp:meta (:rule arg-list?))))
                                     (and box
                                          (meta-sexp:meta (:rule token :rparen))
                                          (list-box-list box))))

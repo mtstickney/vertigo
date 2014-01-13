@@ -1,6 +1,6 @@
 (in-package :vertigo)
 
-(meta-sexp:defrule param-spec? (&aux match type expr) ()
+(meta-sexp:defrule arg-spec? (&aux match type expr) ()
   (:? (:assign type (:or (:icase "input-output")
                          (:icase "input")
                          (:icase "output")))
@@ -9,17 +9,18 @@
   (:? (:rule whitespace?))
   (:assign expr (:rule expression?))
 
-  (:return (vertigo::make-param :type type :val expr)))
+  (:return (vertigo::make-arg :direction type :val expr)))
 
 ;; Note: parens are taken care of by the expression parser
-(meta-sexp:defrule param-list? (&aux match param (list (meta-sexp:make-list-accum))) ()
+(meta-sexp:defrule arg-list? (&aux match param (list (meta-sexp:make-list-accum))) ()
   (:with-stored-match (match)
     (:? (:rule whitespace?))
 
     ;; Parameters
     (:? (:delimited* #\,
                      (:? (:rule whitespace?))
-                     (:assign param (:rule param-spec?))
+                     (:assign param (:or (:rule expression?)
+                                         (:rule parse-object)))
                      (:list-push param list)
                      (:? (:rule whitespace?))))
     (:? (:rule whitespace?)))
