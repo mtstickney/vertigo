@@ -228,13 +228,6 @@
   `(progn (meta-sexp:commit ,ctx)
           t))
 
-(meta-sexp:defrule test (&aux thing) ()
-  (:or
-   (:checkpoint
-    (:assign thing (:type t))
-    nil)
-   thing))
-
 (deftype whitespace-char ()
   '(or (eql #\Tab)
     (eql #\Newline)
