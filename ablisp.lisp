@@ -74,32 +74,32 @@
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :cursor)) &optional args)
   (declare (ignore args))
-  `(meta-sexp::parser-context-cursor ,ctx))
+  `(meta-sexp:cursor ,ctx))
 
-(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :data)) &optional args)
-  (declare (ignore args))
-  `(meta-sexp::parser-context-data ,ctx))
-
-(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :matched-since)) &optional args)
-  `(subseq ,(meta-sexp:transform-grammar ret ctx t :data)
-           ,(first args)
-           ,(meta-sexp:transform-grammar ret ctx t :cursor)))
+(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :subseq)) &optional args)
+  (destructuring-bind (start &optional end) args
+    `(meta-sexp:context-subseq ,ctx
+                               ,(meta-sexp:transform-grammar ret ctx t start nil)
+                               ,(meta-sexp:transform-grammar ret ctx t end nil))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :with-stored-match)) &optional args)
-  (declare (special *debug*))
-  (let* ((index-var (gensym))
-         (match-save (meta-sexp:transform-grammar
-                      ret ctx t :assign
-                      (list (first args)
-                            (meta-sexp:transform-grammar ret ctx t :matched-since (list index-var))))))
-    `(if *debug*
-         (let ((,index-var ,(meta-sexp:transform-grammar ret ctx t :cursor)))
-           ;; (:and ,@body (:assign var (:matched-since index)))
-           ,(meta-sexp:transform-grammar ret ctx t :and
-                                         (concatenate 'list (cdr args)
-                                                      (list match-save))))
-         ,(meta-sexp:transform-grammar ret ctx t :and (cdr args)))))
-
+  (destructuring-bind ((place) &body body) args
+    (let* ((index-var (gensym "INDEX"))
+           (result-var (gensym "RESULT"))
+           (match-save (meta-sexp:transform-grammar
+                        ret ctx t :assign
+                        (list place
+                              `(meta-sexp:context-data
+                                ,(meta-sexp:transform-grammar ret ctx t :subseq (list index-var '(:cursor))))))))
+      `(let ((,index-var ,(meta-sexp:transform-grammar ret ctx t :cursor))
+             (,result-var ,(meta-sexp:transform-grammar ret ctx t :and body)))
+         ;; (:and ,@body (:assign var (:matched-since index)))
+         ,(meta-sexp:transform-grammar ret ctx t :and
+                                       (list result-var
+                                             match-save
+                                             ;; Want to return this as
+                                             ;; the value of the :and
+                                             result-var))))))
 
 ;; Enable debug string saving in the following definitions
 (eval-when (:compile-toplevel :load-toplevel :execute)

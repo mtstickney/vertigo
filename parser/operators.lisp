@@ -81,7 +81,7 @@
 ; "Base-10 digits followed by a symbol-terminating character."
 (meta-sexp:defrule integer? (&optional (base 10) &aux symb) ()
   (:assign symb (:rule symbol?))
-  (:with-context ((symb-name symb))
+  (:with-context-for ((symb-name symb))
     (multiple-value-bind (result digits) (meta-sexp:meta (:rule digits? base))
       (values)
       (meta-sexp:meta
@@ -127,7 +127,7 @@
 (meta-sexp:defrule date-literal? (&aux symb match month day year) ()
   (:with-stored-match (match)
     (:assign symb (:rule symbol?))
-    (:with-context ((symb-name symb))
+    (:with-context-for ((symb-name symb))
       (:whole-match
        (:assign month (:rule digits?))
        #\/
@@ -196,7 +196,7 @@
     ()
   (:with-stored-match (match)
     (:assign str (:rule string-literal?))
-    (:with-context (str)
+    (:with-context-for (str)
       (:assign month (:rule integer?))
       #\-
       (:assign day (:rule integer?))
@@ -562,7 +562,7 @@
     (:assign obj (:rule parse-object))
     (typecase obj
       (symb (meta-sexp:meta
-             (:with-context ((symb-name obj))
+             (:with-context-for ((symb-name obj))
                (:whole-match
                 (:or (:icase "MODULO")
                      (:icase "NE")

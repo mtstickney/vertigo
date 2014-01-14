@@ -13,16 +13,22 @@
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :cursor)) &optional args)
   (declare (ignore args))
-  `(meta-sexp::parser-context-cursor ,ctx))
+  `(meta-sexp:cursor ,ctx))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :data)) &optional args)
   (declare (ignore args))
-  `(meta-sexp::parser-context-data ,ctx))
+  `(meta-sexp:context-data ,ctx))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :matched-since)) &optional args)
   `(subseq ,(meta-sexp:transform-grammar ret ctx t :data)
            ,(first args)
            ,(meta-sexp:transform-grammar ret ctx t :cursor)))
+
+(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :subseq)) &optional args)
+  (destructuring-bind (start &optional end) args
+    `(meta-sexp:context-subseq ,ctx
+                               ,(meta-sexp:transform-grammar ret ctx t start)
+                               ,(meta-sexp:transform-grammar ret ctx t end))))
 
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :with-stored-match)) &optional args)
   (destructuring-bind ((place) &body body) args
@@ -31,7 +37,8 @@
            (match-save (meta-sexp:transform-grammar
                         ret ctx t :assign
                         (list place
-                              (meta-sexp:transform-grammar ret ctx t :matched-since (list index-var))))))
+                              `(meta-sexp:context-data
+                                ,(meta-sexp:transform-grammar ret ctx t :subseq (list index-var '(:cursor))))))))
       `(let ((,index-var ,(meta-sexp:transform-grammar ret ctx t :cursor))
              (,result-var ,(meta-sexp:transform-grammar ret ctx t :and body)))
          ;; (:and ,@body (:assign var (:matched-since index)))
@@ -192,23 +199,23 @@
        (and ,post-code ,result-var))))
 
 (defmethod meta-sexp:transform-grammar
-    (ret ctx (in-meta (eql t)) (directive (eql :with-context)) &optional args)
+    (ret ctx (in-meta (eql t)) (directive (eql :with-context-for)) &optional args)
   (destructuring-bind ((context-data) &rest forms) args
     (let ((ctx-var (gensym "CONTEXT")))
       `(let ((,ctx-var (meta-sexp:create-parser-context ,context-data)))
          ,(meta-sexp:transform-grammar ret ctx-var t :checkpoint forms)))))
 
 (defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :with-context)) &optional args)
+  (destructuring-bind ((context) &rest forms) args
+    (let ((ctx-var (gensym "CONTEXT")))
+      `(let ((,ctx-var ,context))
+         ,(meta-sexp:transform-grammar ret ctx-var t :checkpoint forms)))))
+
+(defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :peek-atom)) &optional args)
   (declare (ignore args))
-  ;; (:not (:not (:type t)))
-  (let ((atom-var (gensym "ATOM")))
-    `(let (,atom-var)
-       ,(meta-sexp:transform-grammar ret ctx t :or
-                                     (list `(:checkpoint
-                                             (:assign ,atom-var (:type t))
-                                             nil)
-                                           atom-var)))))
+  `(meta-sexp:peek-atom ,ctx))
 
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :context)) &optional args)
@@ -218,7 +225,7 @@
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :commit)) &optional args)
   (declare (ignore args))
-  `(progn (meta-sexp::commit ,ctx)
+  `(progn (meta-sexp:commit ,ctx)
           t))
 
 (meta-sexp:defrule test (&aux thing) ()
