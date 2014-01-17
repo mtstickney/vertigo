@@ -627,6 +627,7 @@
 (meta-sexp:defrule labeled-block-statement? (&aux label block-stmt) ()
   (:not (:rule block-symbol?))
   (:assign label (:rule any-symbol))
+  (:? (:rule whitespace?))
   ;; don't want to let parse-object try to read a sequence
   #\:
   (:or (:rule whitespace?)
