@@ -230,13 +230,14 @@
 
 (defmethod meta-sexp:transform-grammar
     (ret ctx (in-meta (eql t)) (directive (eql :optima)) &optional args)
-  (let ((obj-var (gensym "OBJ")))
+  (let ((obj-var (gensym "OBJ"))
+        (eof-var (gensym "EOF-P")))
     (meta-sexp:transform-grammar ret ctx t :checkpoint
-                                 `((let (,obj-var)
-                                     ;; Could just use read-atom, probably
-                                     (meta-sexp:meta (:assign ,obj-var (:type t)))
-                                     (optima:match ,obj-var
-                                       ,@args))))))
+                                 `((multiple-value-bind (,obj-var ,eof-var) (meta-sexp:read-atom ,ctx)
+                                     (if ,eof-var
+                                         nil
+                                         (optima:match ,obj-var
+                                           ,@args)))))))
 
 (deftype whitespace-char ()
   '(or (eql #\Tab)
