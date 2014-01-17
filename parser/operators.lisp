@@ -656,7 +656,10 @@
                    (:list-push s list)))
   (make-statement-block :statements (reverse list)))
 
+;; Toplevel statement sequence rule
 (meta-sexp:defrule statement-block? (&aux s (list '())) ()
   (:* (:checkpoint (:assign s (:rule statement?))
                    (:list-push s list)))
-  (make-statement-block :statements (reverse list)))
+  ;; If we haven't matched a statement, it had better be EOF
+  (:and (:eof)
+        (make-statement-block :statements (reverse list))))
