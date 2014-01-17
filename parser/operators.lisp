@@ -629,6 +629,7 @@
   (:assign label (:rule any-symbol))
   (:? (:rule whitespace?))
   ;; don't want to let parse-object try to read a sequence
+  ;; TODO: there are probably issues with this not coming from parse-object
   #\:
   (:or (:rule whitespace?)
        (:eof))
