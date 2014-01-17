@@ -228,6 +228,16 @@
   `(progn (meta-sexp:commit ,ctx)
           t))
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :optima)) &optional args)
+  (let ((obj-var (gensym "OBJ")))
+    (meta-sexp:transform-grammar ret ctx t :checkpoint
+                                 `((let (,obj-var)
+                                     ;; Could just use read-atom, probably
+                                     (meta-sexp:meta (:assign ,obj-var (:type t)))
+                                     (optima:match ,obj-var
+                                       ,@args))))))
+
 (deftype whitespace-char ()
   '(or (eql #\Tab)
     (eql #\Newline)
