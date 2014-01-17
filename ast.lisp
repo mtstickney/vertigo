@@ -65,6 +65,9 @@
   (val)
   (type))
 
+(defstruct (lambda-list (:include ast-node))
+  (params))
+
 (defstruct (arg (:include ast-node))
   (direction)
   (val))
