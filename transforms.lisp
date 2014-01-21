@@ -63,9 +63,9 @@
 
 (defmethod transform-tree ((op (eql 'collect-lambda-lists)) (tree statement))
   (let ((new-statement (copy-statement tree))
-        (ctx (meta-sexp:create-parser-context (statement-parts statement))))
+        (ctx (meta-sexp:create-parser-context (statement-parts tree))))
     (setf (statement-parts new-statement)
-          (collect-lambda-lists (statement-parts statement)))))
+          (collect-lambda-lists ctx))))
 
 (defmethod transform-tree ((op (eql 'collect-blocks)) (tree ast-node))
   (collect-blocks tree))
