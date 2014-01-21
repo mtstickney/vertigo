@@ -21,8 +21,9 @@
   (loop for op in '(collect-lambda-lists
                     collect-blocks
                     convert-eq-to-assign ; Convert '=' ops to ':='
-                                        ; when they're a top-level form
-                    )
+                                        ; when they're a top-level
+                                        ; form
+                    fixup-arglists)
      for tree = (transform-tree op tree)
      finally (return tree)))
 
@@ -97,6 +98,36 @@
 (defmethod collect-blocks ((tree statement))
 
   )
+
+(meta-sexp:defrule separated-list? (separator &aux (items '())) ()
+  ;; AST nodes separated by separator tokens
+  (:? (:delimited* (:optima ((token separator) t))
+                   (:optima ((and x
+                                  (structure ast-node-)
+                                  (not (token)))
+                             (push x items) t))))
+  (:eof)
+  (:return (make-list-box :list (nreverse items))))
+
+(defmethod transform-tree ((op (eql 'fixup-arglists)) (tree (eql '())))
+  tree)
+
+(defmethod transform-tree ((op (eql 'fixup-arglists)) (tree op-node))
+  (let ((operator (op-node-op tree))
+        (lhs (op-node-lhs tree))
+        (rhs (op-node-rhs tree)))
+    (if (or (equal operator "(")
+            (equal operator "["))
+        (let ((box (separated-list? (meta-sexp:create-parser-context rhs) :comma)))
+          (unless box
+            (error "RHS ~S for operator '~A' is not a comma-separated list" rhs operator))
+          (make-op-node :op operator
+                        :lhs (transform-tree op lhs)
+                        :rhs (mapcar (lambda (n) (transform-tree op n))
+                                     (list-box-list box))))
+        (make-op-node :op operator
+                      :lhs (transform-tree op lhs)
+                      :rhs (transform-tree op rhs)))))
 
 (defgeneric compile-to-lisp (node &rest r)
   (:documentation "Given an AST node NODE, produce the equivalent lisp code for that node."))
