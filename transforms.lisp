@@ -3,7 +3,7 @@
 (defgeneric transform-tree (transform-op tree)
   (:documentation "Perform the TRANSFORM-OP transformation on the AST tree TREE."))
 
-(defmethod transform-tree ((transform-op 'parse) (tree ast-node))
+(defmethod transform-tree ((transform-op (eql 'parse)) (tree ast-node))
   (loop for op in '(collect-lambda-lists
                     collect-blocks
                     convert-eq-to-assign ; Convert '=' ops to ':='
@@ -15,7 +15,7 @@
 ;; collect lambda lists into actual lists
 ;; TODO: these could use a dirty-p flag to avoid consing up a new copy
 ;; of the whole tree
-(defmethod transform-tree ((op 'collect-lambda-lists) (tree statement-block))
+(defmethod transform-tree ((op (eql 'collect-lambda-lists)) (tree statement-block))
   (let ((new-block (copy-statement-block tree)))
     (setf (statement-block-statements new-block)
           (loop for s in (statement-block-statements tree)
@@ -61,7 +61,7 @@
       (:list-push obj items))
   (nreverse items))
 
-(defmethod transform-tree ((op 'collect-lambda-lists) (tree statement))
+(defmethod transform-tree ((op (eql 'collect-lambda-lists)) (tree statement))
   (let ((new-statement (copy-statement tree))
         (ctx (meta-sexp:create-parser-context (statement-parts statement))))
     (setf (statement-parts new-statement)
