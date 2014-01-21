@@ -84,14 +84,14 @@
 
   )
 
-(defgeneric compile-to-lisp (node)
+(defgeneric compile-to-lisp (node &rest r)
   (:documentation "Given an AST node NODE, produce the equivalent lisp code for that node."))
 
 ;; TODO: figure out how to deal with packages here
-(defmethod compile-to-lisp ((node symb))
+(defmethod compile-to-lisp ((node symb) &key)
   (make-symbol (symb-name node)))
 
-(defmethod compile-to-lisp ((node number-value))
+(defmethod compile-to-lisp ((node number-value) &key)
   (number-value-val node))
 
 ;; Note: ABL time is universal time with millisecond precision
@@ -116,12 +116,12 @@
 (defun encode-abl-date (day month year &optional timezone)
   (encode-abl-time 0 0 0 day month year timezone))
 
-(defmethod compile-to-lisp ((node date-value))
+(defmethod compile-to-lisp ((node date-value) &key)
   (encode-abl-date (date-value-day node)
                    (date-value-month node)
                    (date-value-year node)))
 
-(defmethod compile-to-lisp ((node time-value))
+(defmethod compile-to-lisp ((node time-value) &key)
   (with-accessors ((hour time-value-hour)
                    (minute time-value-minute)
                    (second time-value-second)
@@ -135,7 +135,7 @@
       (encode-abl-time seconds minute hour 1 1 1 time-zone))))
 
 ;; Duplicating code, eh? Such a shame.....
-(defmethod compile-to-lisp ((node datetime-value))
+(defmethod compile-to-lisp ((node datetime-value) &key)
   (let* ((time (datetime-value-time node))
          (timezone (time-value-timezone time))
          (date (datetime-value-date node))
@@ -152,7 +152,7 @@
 ;; an over-sized string probably doesn't behave like an abl string
 ;; with reserved space -- should probably ignore reserved space since
 ;; it's a compiler thing)
-(defmethod compile-to-lisp ((node string-value))
+(defmethod compile-to-lisp ((node string-value) &key)
   (let ((str (string-value-str node))
         (reserved-size (string-value-reserved node)))
     (if (and reserved-size (> reserved-size (length str)))
@@ -168,10 +168,10 @@
         (compile-to-lisp (op-node-lhs node))
         (compile-to-lisp (op-node-rhs node))))
 
-(defmethod compile-to-lisp ((node symb))
+(defmethod compile-to-lisp ((node symb) &key)
   (make-symbol (symb-name node)))
 
-(defmethod compile-to-lisp ((node unary-op-node))
+(defmethod compile-to-lisp ((node unary-op-node) &key)
   (list (make-symbol (unary-op-node-op node))
         (compile-to-lisp (unary-op-node-val node))))
 
