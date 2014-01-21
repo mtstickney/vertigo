@@ -17,6 +17,7 @@
                                      (:file "operators")
                                      (:file "phrases")
                                      (:file "statements")))
+               (:file "runtime")
                (:file "tests")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))
