@@ -3,6 +3,20 @@
 (defgeneric transform-tree (transform-op tree)
   (:documentation "Perform the TRANSFORM-OP transformation on the AST tree TREE."))
 
+;; Some useful default traversal methods
+(defmethod transform-tree (op (tree statement-block))
+  (make-statement-block :statements (loop for s in (statement-block-statements tree)
+                                          collect (transform-tree op s))))
+
+(defmethod transform-tree (op (tree statement))
+  (make-statement :label (statement-label tree)
+                  :parts (loop for p in (statement-parts tree)
+                               collect (transform-tree op p))))
+
+;; Default NO-OP method for other atoms
+(defmethod transform-tree (op (tree ast-node))
+  tree)
+
 (defmethod transform-tree ((transform-op (eql 'parse)) (tree ast-node))
   (loop for op in '(collect-lambda-lists
                     collect-blocks
