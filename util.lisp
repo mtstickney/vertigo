@@ -52,11 +52,15 @@
      until (funcall test val)
      finally (return val)))
 
+(defun thread-it (&rest funcs)
+  (lambda (val)
+    (reduce (lambda (v f)
+              (funcall f v))
+            funcs
+            :initial-value val)))
+
 (defun -> (initial &rest funcs)
-  (reduce (lambda (v f)
-            (funcall f v))
-          funcs
-          :initial-value initial))
+  (funcall (thread-it funcs) initial))
 
 (defun slurp-file (path)
   (with-open-file (fh path)
