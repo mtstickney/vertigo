@@ -273,10 +273,28 @@
 
 ;; TODO: figure out symbol packages here (just use the runtime
 ;; package, inherits symbols from CL will work)
-(defmethod compile-to-lisp ((node op-node))
-  (list (make-symbol (op-node-op node))
-        (compile-to-lisp (op-node-lhs node))
-        (compile-to-lisp (op-node-rhs node))))
+(defmethod compile-to-lisp ((node op-node) &key)
+  (let ((op (op-node-op node)))
+    (cond
+      ;; Function call
+      ;; TODO: add support for foo:bar() methods without using funcall
+
+      ((equal op "(") (let ((lhs (op-node-lhs node))
+                            (rhs (op-node-rhs node)))
+                        (if (symb-p lhs)
+                            (cons (compile-to-lisp lhs)
+                                  (mapcar #'compile-to-lisp rhs))
+                            (cons '#:funcall
+                                  (mapcar #'compile-to-lisp
+                                          (cons lhs rhs))))))
+      ((equal op "[") (let ((lhs (op-node-lhs node))
+                            (rhs (op-node-rhs node)))
+                        (cons '#:aref
+                              (mapcar #'compile-to-lisp
+                                      (cons lhs rhs)))))
+      (t (list (make-symbol (op-node-op node))
+               (compile-to-lisp (op-node-lhs node))
+               (compile-to-lisp (op-node-rhs node)))))))
 
 (defmethod compile-to-lisp ((node symb) &key)
   (make-symbol (symb-name node)))
