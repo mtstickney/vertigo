@@ -18,6 +18,7 @@
                                      (:file "phrases")
                                      (:file "statements")))
                (:file "runtime")
+               (:file "transforms")
                (:file "tests")))
 
 (defmethod asdf:perform :around ((op asdf:compile-op) (component asdf:cl-source-file))
