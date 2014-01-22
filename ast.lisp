@@ -44,7 +44,7 @@
 
 (defstruct (string-value (:include ast-node))
   (str)
-  (justify :none)
+  (justify)
   (translatable t)
   (reserved))
 
