@@ -102,22 +102,67 @@
     (setf (statement-parts new-statement)
           (collect-lambda-lists ctx))))
 
-(defmethod transform-tree ((op (eql 'collect-blocks)) (tree ast-node))
-  (collect-blocks tree))
-
-(defgeneric collect-blocks (tree)
-  (:documentation "Collect sequences of statements that form a block into STATEMENT-BLOCKs in TREE."))
-
-(defun block-header-p (statement)
-  (check-type statement statement)
-  (optima:match statement
+(meta-sexp:defrule block-header-statement? () ()
+  (:optima
     ;; Block header statements that
-    ((statement- (parts (list* (and ) (or (equalp)))))))
-  )
+   ((and s (statement* (or (symbol "DO")
+                           (symbol "FOR")
+                           (symbol "REPEAT")
+                           (symbol "PROCEDURE")
+                           (symbol "METHOD")
+                           (symbol "INTERFACE")
+                           (symbol "FUNCTION")
+                           (symbol "DESTRUCTOR")
+                           (symbol "CONSTRUCTOR")
+                           (symbol "CLASS")
+                           (symbol "CASE")
+                           (symbol "GET")
+                           (symbol "SET"))
+                       _))
+    s)))
 
-(defmethod collect-blocks ((tree statement))
+(meta-sexp:defrule collected-block-statement? (&aux s) ()
+  ;; Returns S if S is an AST statement that contains a
+  ;; statement-block followed by an END symbol, nil otherwise.
+  (:assign s (:optima ((and s (statement)) s)))
+  (:with-context-for ((statement-parts s))
+    (:* (:not (:optima ((block) t)))
+        (:not (:optima ((statement* (symbol "END") _) t)))
+        (:optima ((structure ast-node-) t)))
+    (:optima ((block) t))
+    (:optima ((symbol "END") t)))
+  s)
 
-  )
+(meta-sexp:defrule block-or-statement? (&aux head s (statements '())) ()
+  (:or (:rule collected-block-statement?)
+       (:checkpoint (:assign head (:rule block-header-statement?))
+                    (:* (:not (:optima ((statement* (symbol "END") _) t)))
+                        (:assign s (:rule block-or-statement?))
+                        (:list-push s statements))
+                    ;; TODO: check the end type in here eventually
+                    (:assign s (:optima ((and s (statement* (symbol "END") _)) s)))
+                    (make-statement :parts (append (statement-parts head)
+                                                   (list (make-statement-block :statements (nreverse statements)))
+                                                   ;; END statement
+                                                   (statement-parts s))
+                                    :label (statement-label head)))
+       (:optima ((and s (statement)) s))))
+
+(meta-sexp:defrule collect-blocks (&aux s (statements '())) ()
+  (:* (:assign s (:rule block-or-statement?))
+      (:list-push s statements))
+  (:eof)
+  (make-statement-block :statements (nreverse statements)))
+
+(defmethod transform-tree ((op (eql 'collect-blocks)) (tree statement-block))
+  "Collect sequences of statements that form a block into STATEMENT-BLOCKs in TREE."
+  (let ((new-block (collect-blocks (meta-sexp:create-parser-context (statement-block-statements tree)))))
+    (unless new-block
+      ;; TODO: this should go in one of the defrules so we can give a
+      ;; better error message
+      (error "Unable to collect blocks in statement block ~S~%" tree))
+    new-block))
+
 
 (meta-sexp:defrule separated-list? (separator &aux (items '())) ()
   ;; AST nodes separated by separator tokens
