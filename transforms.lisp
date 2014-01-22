@@ -49,6 +49,26 @@
         `(token- (type (eq ,type)))
         `(structure token-))))
 
+(optima:defpattern statement (&rest args)
+  (if args
+      `(statement- (parts (list ,@args)))
+      `(structure statement-)))
+
+(optima:defpattern statement* (&rest args)
+  (if args
+      `(statement- (parts (list* ,@args)))
+      `(structure statement-)))
+
+(optima:defpattern block (&rest args)
+  (if args
+      `(statement-block- (statements (list ,@args)))
+      `(structure statement-block-)))
+
+(optima:defpattern block* (&rest args)
+  (if args
+      `(statement-block- (statements (list* ,@args)))
+      `(structure statement-block-)))
+
 (meta-sexp:defrule param? (&aux direction param type) ()
   (:? (:assign direction (:optima ((and s (or (symbol "INPUT")
                                               (symbol "OUTPUT")
