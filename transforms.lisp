@@ -258,18 +258,23 @@
                         timezone)
        relative-time)))
 
-;; TODO: going to have to deal with the string options somehow (also,
-;; an over-sized string probably doesn't behave like an abl string
-;; with reserved space -- should probably ignore reserved space since
-;; it's a compiler thing)
-(defmethod compile-to-lisp ((node string-value) &key)
-  (let ((str (string-value-str node))
-        (reserved-size (string-value-reserved node)))
-    (if (and reserved-size (> reserved-size (length str)))
-        (let ((new-str (make-string reserved-size)))
-          (replace new-str str)
-          new-str)
-        str)))
+
+(defun defaulted-padding-opts (node &rest defaults &key size justify)
+  (declare (ignore size justify))
+  (let ((node-justify (string-value-justify node))
+        (node-size (string-value-reserved node)))
+    (when node-justify
+      (setf (getf defaults :justify) node-justify))
+    (when node-size
+      (setf (getf defaults :size) node-size))
+    defaults))
+
+;; TODO: Deal with :translatable, probably via cl-i18n
+;; Produce a padded string, using :size and :justify arguments as defaults
+(defmethod compile-to-lisp ((node string-value) &rest opts &key size justify)
+  (declare (ignore size justify))
+  (let ((defaulted-opts (apply #'defaulted-padding-opts node opts)))
+    (apply #'vrt:make-padded-string (string-value-str node) defaulted-opts)))
 
 ;; TODO: figure out symbol packages here (just use the runtime
 ;; package, inherits symbols from CL will work)
