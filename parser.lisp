@@ -30,6 +30,7 @@
                                ,(meta-sexp:transform-grammar ret ctx t start)
                                ,(meta-sexp:transform-grammar ret ctx t end))))
 
+;; TODO: Probably need checkpointing in here
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :with-stored-match)) &optional args)
   (destructuring-bind ((place) &body body) args
     (let* ((index-var (gensym "INDEX"))
