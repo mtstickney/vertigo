@@ -163,6 +163,16 @@
       (error "Unable to collect blocks in statement block ~S~%" tree))
     new-block))
 
+(defmethod transform-tree ((op (eql 'convert-eq-to-assign)) (tree statement))
+  (optima:match tree
+    ((statement (op-node- (op (equalp "="))
+                          (lhs lhs)
+                          (rhs rhs)))
+     (make-statement :parts (list (make-op-node :lhs lhs
+                                                :rhs rhs
+                                                :op ":="))
+                     :label (statement-label tree)))
+    (s s)))
 
 (meta-sexp:defrule separated-list? (separator &aux (items '())) ()
   ;; AST nodes separated by separator tokens
