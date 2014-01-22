@@ -19,11 +19,6 @@
   (declare (ignore args))
   `(meta-sexp:context-data ,ctx))
 
-(defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :matched-since)) &optional args)
-  `(subseq ,(meta-sexp:transform-grammar ret ctx t :data)
-           ,(first args)
-           ,(meta-sexp:transform-grammar ret ctx t :cursor)))
-
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :subseq)) &optional args)
   (destructuring-bind (start &optional end) args
     `(meta-sexp:context-subseq ,ctx
