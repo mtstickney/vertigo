@@ -296,10 +296,10 @@
                (compile-to-lisp (op-node-lhs node))
                (compile-to-lisp (op-node-rhs node)))))))
 
+;; TODO: Handle converting case and hyphenation to lisp-names
 (defmethod compile-to-lisp ((node symb) &key)
   (make-symbol (symb-name node)))
 
 (defmethod compile-to-lisp ((node unary-op-node) &key)
   (list (make-symbol (unary-op-node-op node))
         (compile-to-lisp (unary-op-node-val node))))
-
