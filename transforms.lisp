@@ -23,7 +23,9 @@
                     convert-eq-to-assign ; Convert '=' ops to ':='
                                         ; when they're a top-level
                                         ; form
-                    fixup-arglists)
+                    fixup-arglists
+                    ;; Overly-aggressive stuff that needs to go last
+                    collect-db-fields)
      for tree = (transform-tree op tree)
      finally (return tree)))
 
@@ -203,6 +205,32 @@
         (make-op-node :op operator
                       :lhs (transform-tree op lhs)
                       :rhs (transform-tree op rhs)))))
+
+(defmethod transform-tree ((op (eql 'collect-db-fields)) (tree (eql '())))
+  nil)
+
+(defmethod transform-tree ((op (eql 'collect-db-fields)) (tree op-node))
+  "Convert [a.]b.c references into database field accesses."
+  ;; This is a little state machine:
+  ;; q0 x -> q0 ; regular transform-tree recursion
+  ;; q0 (op-node :op ".") -> q1
+  ;; q1 (op-node :op ".") -> q1 ; accumulation recursion
+  ;; q1 x -> q0 ; out of accumulation, back to regular transform-tree
+  (labels ((accum-field-refs (tree)
+             (cond
+               ((and (typep tree 'op-node)
+                     (equal (op-node-op tree) "."))
+                (cons (transform-tree op (op-node-rhs tree))
+                      (accum-field-refs (op-node-lhs tree))))
+               (t (list tree)))))
+    (let ((operator (op-node-op tree))
+          (lhs (op-node-lhs tree))
+          (rhs (op-node-rhs tree)))
+      (if (equal operator ".")
+          (make-field-ref :parts (accum-field-refs tree))
+          (make-op-node :op operator
+                        :lhs (transform-tree op lhs)
+                        :rhs (transform-tree op rhs))))))
 
 (defgeneric compile-to-lisp (node &rest r)
   (:documentation "Given an AST node NODE, produce the equivalent lisp code for that node."))

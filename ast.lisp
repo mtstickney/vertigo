@@ -77,3 +77,8 @@
 
 (defstruct (statement-block (:include ast-node))
   (statements))
+
+(defstruct (field-ref (:include ast-node))
+  ;; (field-name table-name &optional db-name)
+  ;; Technically table-name is optional too, but we won't get into that
+  (parts))
