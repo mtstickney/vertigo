@@ -10,7 +10,8 @@
    (column :accessor col-num :initarg :column)
    (line-ending-style :accessor eol-style :initarg :eol-style)
    (carriage-return-p :accessor returnp :initform nil)
-   (in-newline-p :accessor newlinep :initform nil))
+   (in-newline-p :accessor newlinep :initform nil)
+   (checkpoint-stack :accessor checkpoints :initform nil))
   (:default-initargs :eol-style :unix
     :line 1
     :column 0))
@@ -63,6 +64,23 @@
     (unless eofp
       (process-char ctx atom))
     (values atom eofp)))
+
+(defmethod meta-sexp:checkpoint :after ((ctx text-position-mixin))
+  (push (list (line-num ctx)
+              (col-num ctx)
+              (returnp ctx)
+              (newlinep ctx))
+        (checkpoints ctx)))
+
+(defmethod meta-sexp:commit :after ((ctx text-position-mixin))
+  (pop (checkpoints ctx)))
+
+(defmethod meta-sexp:rollback :after ((ctx text-position-mixin))
+  (destructuring-bind (line col ret newline) (first (checkpoints ctx))
+    (setf (line-num ctx) line
+          (col-num ctx) col
+          (returnp ctx) ret
+          (newlinep ctx) newline)))
 
 (defclass counting-string-context (meta-sexp::string-parser-context text-position-mixin)
   ())
