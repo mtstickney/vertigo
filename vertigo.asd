@@ -9,6 +9,7 @@
   :components ((:file "package")
                (:file "util")
                (:file "parser")
+               (:file "preprocessor")
                (:file "ast")
                (:module parser-rules
                         :pathname "parser"
