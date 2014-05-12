@@ -108,3 +108,109 @@
     (loop for atom = (meta-sexp:read-atom context)
        while atom)
     (list :line (line-num context) :col (col-num context) :returnp (returnp context) :newlinep (newlinep context))))
+
+(defclass preprocessor-string-context (counting-string-context)
+  ((global-environment :accessor global-env :initform '())
+   (scoped-environment :accessor scoped-env :initform '(()))
+   (expansion-context :accessor expansion-context :initform nil)))
+
+(defgeneric add-preproc-scope (context)
+  (:documentation "Add a new processor scope to CONTEXT.")
+  (:method ((context preprocessor-string-context))
+    (push nil (scoped-env context))
+    (values)))
+
+(defgeneric close-preproc-scope (context)
+  (:documentation "Close (remove) the current processor scope in CONTEXT.")
+  (:method ((context preprocessor-string-context))
+    (when (scoped-env context)
+      (pop (scoped-env context)))
+    (values)))
+
+;; TODO: it's probably not worth using this over pushnew/acons. Test
+;; on actual file.
+(defun substitute-assoc (key value alist &key (test #'eql))
+  "Associate VALUE with KEY in the alist ALIST, but with less consing than ACONS."
+  (labels ((replace-item (list)
+             (cond
+               ((null list) nil)
+               ((and (first list)
+                     (funcall test key (car (first list))))
+                ;; found it, replace the value and the rest of the list
+                (cons (cons (car (first list))
+                            value)
+                      (cdr list)))
+               (t (let ((rest (replace-item (cdr list))))
+                    (if (eq rest (cdr list))
+                        ;; No changes, return the current list
+                        list
+                        ;; Otherwise cons the current element
+                        (cons (first list) rest)))))))
+    (let ((list (replace-item alist)))
+      (if (eq list alist)
+          ;; No existing element, cons it on
+          (acons key value alist)
+          ;; Otherwise done
+          list))))
+
+(defgeneric globally-define (context symbol text)
+  (:documentation "Define the preprocessor SYMBOL to have the replacement text TEXT globally.")
+  (:method ((context preprocessor-string-context) symbol text)
+    (check-type symbol string)
+    (check-type text string)
+    ;; It would be more memory-efficient to use substitute-assoc, but
+    ;; that's a lot of extra code.
+    (push (cons symbol text) (global-env context))
+    (values)))
+
+;; TODO: this needs heavy testing for checkpointing
+(defgeneric locally-define (context symbol text)
+  (:documentation "Define the preprocessor SYMBOL to have the replace text TEXT within the current scope.")
+  (:method ((context preprocessor-string-context) symbol text)
+    (check-type symbol string)
+    (check-type text string)
+    (assert (not (endp (scoped-env context))) ()
+            "There is no scope active for this definition.")
+    ;; (push <..> (first (scoped-env ctx))) is not safe, since
+    ;; (setf (first ..)) will destructively modify the env.
+     (let* ((old-env (scoped-env context))
+            (new-env (cons (acons symbol text (first old-env))
+                           (rest old-env))))
+       (setf (scoped-env context) new-env))
+     (values)))
+
+(defgeneric symbol-text (context symbol)
+  (:documentation "Return the current replacement text for the symbol SYMBOL, or NIL if SYMBOL is currently undefined. The secondary value is T if the currently active definition of SYMBOL is global, NIL otherwise.")
+  (:method ((context preprocessor-string-context) symbol)
+    (check-type symbol string)
+    ;; preprocessor symbols are case-insensitive.
+    (let ((local-def (assoc symbol (first (scoped-env context)) :test #'string-equal))
+          (global-def (assoc symbol (global-env context) :test #'string-equal)))
+      (cond
+        (local-def
+         (values (cdr local-def) nil))
+        (global-def
+         (values (cdr local-def) t))
+        (t (values nil nil))))))
+
+(defgeneric undefine-symbol (context symbol)
+  (:documentation "Remove the currently-active definition of SYMBOL in CONTEXT.")
+  (:method ((context preprocessor-string-context) symbol)
+    (check-type symbol string)
+    (multiple-value-bind (text global-p) (symbol-text context symbol)
+      ;; Note that definitions don't stack, so removing all
+      ;; definitions from the appropriate scope is correct.
+      (cond
+        ;; Global definition in effect
+        ((and text global-p)
+         (setf (global-env context) (remove symbol (global-env context)
+                                            :test #'string-equal
+                                            :key #'car)))
+        ;; Local definition
+        (text (let* ((old-env (first (scoped-env context)))
+                     (new-env (cons (remove symbol (first old-env)
+                                            :test #'string-equal
+                                            :key #'car)
+                                    (rest old-env))))
+                (setf (scoped-env context) new-env)))))
+    (values)))
