@@ -15,14 +15,11 @@
                                               whitespace-char)))
 (deftype non-terminating-char () '(and character (not terminating-char)))
 
-(meta-sexp:defrule parse-string? (quote-char &aux match
-                                             (str (meta-sexp:make-char-accum))
-                                             (code 0)
-                                             digit
-                                             char
-                                             string-args
-                                             reserved
-                                             options-p)
+(meta-sexp:defrule parse-quoted-chars (quote-char &aux match
+                                                  (str (meta-sexp:make-char-accum))
+                                                  (code 0)
+                                                  digit
+                                                  char)
     ()
   (:with-stored-match (match)
     (:type character) ; will be (eql quote-char)
@@ -34,16 +31,25 @@
                             (:and #\f (:char-push (code-char #o014) str))
                             (:and (:n-times 3 (:assign digit (:type meta-sexp:digit?))
                                             ;; Octal digits
-                                            (:assign code (+ (* code 8) (digit-char-p digit))))
-                                  (:char-push (code-char code) str))
+                                            (:assign code (+ (* code 8) (digit-char-p digit)))))
                             (:char-push str)))
              ;; Any unescaped char that isn't the quote
-             (:checkpoint
-              (:and (:assign char (:type character))
-                    (:not (eql char quote-char))
-                    (:char-push char str)))))
+             (:checkpoint (:assign char (:type character))
+                          (not (eql char quote-char))
+                          (:char-push char str))))
     ;; Accept the quote char
-    (eql (meta-sexp:meta (:type character)) quote-char)
+    (:char quote-char))
+  str)
+
+(meta-sexp:defrule parse-string? (quote-char &aux match
+                                             str
+                                             string-args
+                                             reserved
+                                             options-p)
+    ()
+  (:with-stored-match (match)
+    (:assign str (:rule parse-quoted-chars quote-char))
+
     (:?
      (:checkpoint #\:
                   (:?
