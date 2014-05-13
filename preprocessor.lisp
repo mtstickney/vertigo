@@ -179,6 +179,7 @@
        (setf (scoped-env context) new-env))
      (values)))
 
+;; TODO: add support for builtins like OPSYS and the {n}/{*} specials
 (defgeneric symbol-text (context symbol)
   (:documentation "Return the current replacement text for the symbol SYMBOL, or NIL if SYMBOL is currently undefined. The secondary value is T if the currently active definition of SYMBOL is global, NIL otherwise.")
   (:method ((context preprocessor-string-context) symbol)
