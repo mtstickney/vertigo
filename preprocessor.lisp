@@ -100,7 +100,7 @@
                  :column column))
 
 (defun test-context (mode str)
-  (let ((context (make-instance 'counting-context
+  (let ((context (make-instance 'counting-string-context
                                 :data str
                                 :start 0
                                 :size (length str)
