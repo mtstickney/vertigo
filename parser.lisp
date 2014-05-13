@@ -11,6 +11,16 @@
                                    (:* (:checkpoint ,delimiter
                                                     ,@items))))))
 
+(defmethod meta-sexp:transform-grammar
+    (ret ctx (in-meta (eql t)) (directive (eql :char)) &optional args)
+  (destructuring-bind (char-exp) args
+    (let ((char-var (gensym "CHAR")))
+      `(let (,char-var)
+         ,(meta-sexp:transform-grammar ret ctx t :checkpoint
+          `((:assign ,char-var (:type character))
+            (eql ,char-var ,char-exp)
+            ,char-var))))))
+
 (defmethod meta-sexp:transform-grammar (ret ctx (in-meta (eql t)) (directive (eql :cursor)) &optional args)
   (declare (ignore args))
   `(meta-sexp:cursor ,ctx))
