@@ -22,7 +22,7 @@
                                                   char)
     ()
   (:with-stored-match (match)
-    (:type character) ; will be (eql quote-char)
+    (:char quote-char) ; will be (eql quote-char)
     (:* (:or (:and #\~ (:or (:and #\n (:char-push #\Newline str))
                             (:and #\t (:char-push #\Tab str))
                             (:and #\r (:char-push #\Return str))
@@ -49,7 +49,6 @@
     ()
   (:with-stored-match (match)
     (:assign str (:rule parse-quoted-chars quote-char))
-
     (:?
      (:checkpoint #\:
                   (:?
