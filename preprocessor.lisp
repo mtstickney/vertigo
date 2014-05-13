@@ -215,3 +215,69 @@
                                     (rest old-env))))
                 (setf (scoped-env context) new-env)))))
     (values)))
+
+;; TODO: get/report the position of the preproc symbol on success
+(meta-sexp:defrule preproc-symbol? (&aux match) ()
+  (:or (:checkpoint "{&"
+                    (:with-stored-match (match)
+                      (:* (:not #\})))
+                    "}")
+       (:checkpoint "{"
+                    (:with-stored-match (match)
+                      (:or #\*
+                           (:+ (:type meta-sexp:digit?))))
+                    "}"))
+  match)
+
+(meta-sexp:defrule named-include-param? (&aux name value) ()
+  (:checkpoint #\&
+               (:or (:assign name (:rule parse-quoted-chars #\'))
+                    (:assign name (:rule parse-quoted-chars #\"))
+                    (:with-stored-match (name)
+                      (:* (:and (:not (:type whitespace-char))
+                                (:not (:or #\' #\"))
+                                (:not #\=)
+                                (:type character)))))
+               (:? (:rule whitespace?))
+               #\=
+               (:? (:rule whitespace?))
+               (:or (:assign value (:rule parse-quoted-chars #\'))
+                    (:assign value (:rule parse-quoted-chars #\"))
+                    (:with-stored-match (value)
+                      (:+ (:and (:not (:type whitespace-char))
+                                (:not (:or #\' #\"))
+                                (:not #\})
+                                (:type character))))))
+  (if (and name value)
+      (list name value)
+      nil))
+
+(meta-sexp:defrule positional-include-param? (&aux value) ()
+  (:or (:assign value (:rule parse-quoted-chars #\'))
+       (:assign value (:rule parse-quoted-chars #\"))
+       (:with-stored-match (value)
+         (:+ (:and (:not (:type whitespace-char))
+                   (:not (:or #\' #\"))
+                   (:not #\})
+                   (:type character)))))
+  value)
+
+(meta-sexp:defrule include-params? (&aux (params '()) param) ()
+  ;; Positional params must come before named params, and take care
+  ;; not to confuse the two.
+  (:+ (:assign param (:or (:rule named-include-param?)
+                          (:rule positional-include-param?)))
+      (:list-push param params)
+      (:? (:rule whitespace?)))
+  (make-list-box :list (nreverse params)))
+
+;; TODO: ABL's quoting stuff for include file names is broken; do we
+;; need to duplicate it?
+(meta-sexp:defrule preproc-include? (&aux match params) ()
+  (:with-stored-match (match)
+    #\{
+    (:? (:rule whitespace?))
+    (:assign params (:rule include-params?))
+    (:? (:rule whitespace?))
+    #\})
+  (cons :include (list-box-list params)))
