@@ -225,7 +225,7 @@
        (:rule number?)
        (:rule symbol?)))
 
-(meta-sexp:defrule parse-comment (&aux (depth 0) match) ()
+(meta-sexp:defrule match-comment (&aux (depth 0) match) ()
   (:and
    (:with-stored-match (match)
      (:and "/*" (incf depth))
@@ -238,7 +238,11 @@
         finally (return t))
      ;; If the depth isn't 0 here, we ran out of input
      (= depth 0))
-   (:return (make-comment :str match))))
+   (:return match)))
+
+(meta-sexp:defrule parse-comment (&aux match) ()
+  (:assign match (:rule match-comment))
+  (make-comment :str match))
 
 (meta-sexp:defrule parse-comment-or-symbol (char) ()
   (:or (:and (:rule parse-comment)
