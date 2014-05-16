@@ -228,7 +228,7 @@
                       (:or #\*
                            (:+ (:type meta-sexp:digit?))))
                     "}"))
-  match)
+  (list :symbol match))
 
 (meta-sexp:defrule named-include-param? (&aux name value) ()
   (:checkpoint #\&
