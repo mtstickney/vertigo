@@ -220,7 +220,8 @@
 (meta-sexp:defrule preproc-symbol? (&aux match) ()
   (:or (:checkpoint "{&"
                     (:with-stored-match (match)
-                      (:* (:not #\})))
+                      (:* (:not #\})
+                          (:type character)))
                     "}")
        (:checkpoint "{"
                     (:with-stored-match (match)
