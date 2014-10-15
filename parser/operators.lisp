@@ -671,5 +671,7 @@
   (:* (:checkpoint (:assign s (:rule statement?))
                    (:list-push s list)))
   ;; If we haven't matched a statement, it had better be EOF
-  (:and (:eof)
+  (:and (:* (:or (:rule parse-comment)
+                 (:rule whitespace?)))
+        (:eof)
         (make-statement-block :statements (reverse list))))
