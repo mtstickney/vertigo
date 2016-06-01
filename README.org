@@ -1,4 +1,3 @@
-
 * Vertigo, the ABL-to-Lisp compiler
   Vertigo aims to be a complete source-to-source compiler to run ABL
   code in a sane environment. The project will eventually include a
