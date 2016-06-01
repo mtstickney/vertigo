@@ -99,6 +99,14 @@
                  :line line
                  :column column))
 
+(defmethod meta-sexp:create-parser-context
+    ((input meta-sexp::parser-context) &rest args)
+  (when args
+    (error "Can't re-initialize options when creating a parser-context from existing context ~S."
+           input))
+  ;; FIXME: probably shouldn't ignore the args here.
+  input)
+
 (defun test-context (mode str)
   (let ((context (make-instance 'counting-string-context
                                 :data str
